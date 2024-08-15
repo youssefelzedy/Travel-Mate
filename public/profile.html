@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .profile-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .profile-container h2 {
+            margin-bottom: 20px;
+        }
+        .profile-container p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .cities-container {
+            margin-top: 20px;
+        }
+        .logout-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .place-item {
+            cursor: pointer;
+            color: blue;
+        }
+        .place-item:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h2>User Profile</h2>
+        <p id="fullname">Full Name: </p>
+        <p id="email">Email: </p>
+        <p id="role">Role: </p>
+        <div class="cities-container">
+            <h3>Cities</h3>
+            <ul id="cities-list"></ul>
+        </div>
+        <button class="logout-button" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const userId = window.location.pathname.split('/').pop();
+            console.log(userId);
+
+            try {
+                const userProfileResponse = await fetch(`/api/v1/users/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!userProfileResponse.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const userData = await userProfileResponse.json();
+                console.log(userData);
+
+                document.getElementById('fullname').textContent = `Full Name: ${userData.data.user.fullname}`;
+                document.getElementById('email').textContent = `Email: ${userData.data.user.email}`;
+                document.getElementById('role').textContent = `Role: ${userData.data.user.role}`;
+
+                const citiesResponse = await fetch('/api/v1/places', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!citiesResponse.ok) {
+                    throw new Error('Failed to fetch cities');
+                }
+
+                const citiesData = await citiesResponse.json();
+                console.log(citiesData.data);
+                const citiesList = document.getElementById('cities-list');
+                citiesData.data.places.forEach(place => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = place.city;
+                    listItem.classList.add('place-item');
+                    listItem.addEventListener('click', () => {
+                        window.location.href = `/profile/${place.city}`;
+                    });
+                    citiesList.appendChild(listItem);
+                });
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login';
+        }
+    </script>
+</body>
+</html>

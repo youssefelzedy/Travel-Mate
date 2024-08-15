@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            flex-direction: column;
+        }
+        .place-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .place-container h2 {
+            margin-bottom: 20px;
+        }
+        .place-container p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .logout-button, .back-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        .back-button {
+            background-color: #007bff;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOzf-XaussCXmQ7jdKxZriWMjLcqPZDbo&callback=initMap" async defer></script>
+</head>
+<body>
+    <div class="place-container">
+        <h2>Place Details</h2>
+        <div id="place-details">
+            <!-- Details will be populated here -->
+        </div>
+        <button class="back-button" onclick="goBack()">Back to Profile</button>
+        <button class="logout-button" onclick="logout()">Logout</button>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        let map;
+
+        function initMap(place) {
+            const placeLocation = { lat: parseFloat(place.location.lat), lng: parseFloat(place.location.lng) };
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: placeLocation,
+                zoom: 14
+            });
+            new google.maps.Marker({
+                position: placeLocation,
+                map: map,
+                title: place.name
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const url = window.location.pathname;
+            const segments = url.split('/');
+
+            const city = segments[1];
+            const placeId = segments[2];
+
+            console.log('City:', city);
+            console.log('Place ID:', placeId);
+
+            try {
+                const response = await fetch(`/api/v1/places/${city}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch place details');
+                }
+
+                const data = await response.json();
+                console.log(data);
+
+                const place = data.data.places.find(place => place.placeId === placeId);
+                console.log(place);
+                const placeDetails = document.getElementById('place-details');
+                placeDetails.innerHTML = `
+                    <p><strong>Name:</strong> ${place.name}</p>
+                    <p><strong>Address:</strong> ${place.address}</p>
+                    <p><strong>Rating:</strong> ${place.rating}</p>
+                    <p><strong>Open Now:</strong> ${place.open_now.open_now}</p>
+                    <p><strong>Price Level:</strong> ${place.price_level}</p>
+                    <p><strong>User Ratings Total:</strong> ${place.user_ratings_total}</p>
+                    <div>
+                        <strong>Photos:</strong>
+                        ${place.photos.map(photo => `<img src="${photo}" alt="Place Photo">`).join('')}
+                    </div>
+                `;
+
+                // Initialize the map with the place location
+                initMap(place);
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

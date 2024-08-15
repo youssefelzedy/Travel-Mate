@@ -1,0 +1,32 @@
+const governorates = [
+  { name: 'Cairo', arabicName: 'القاهرة', location: '30.0444,31.2357' },
+  { name: 'Alexandria', arabicName: 'الإسكندرية', location: '31.2156,29.9553' },
+  { name: 'Giza', arabicName: 'الجيزة', location: '30.0131,31.2089' },
+  { name: 'Port Said', arabicName: 'بورسعيد', location: '31.2653,32.3019' },
+  { name: 'Suez', arabicName: 'السويس', location: '29.9731,32.5244' },
+  { name: 'Luxor', arabicName: 'الأقصر', location: '25.6872,32.6396' },
+  { name: 'Aswan', arabicName: 'أسوان', location: '24.0889,32.8998' },
+  { name: 'Mansoura', arabicName: 'المنصورة', location: '31.0372,31.3551' },
+  { name: 'Tanta', arabicName: 'طنطا', location: '30.7704,31.0001' },
+  { name: 'Ismailia', arabicName: 'الإسماعيلية', location: '30.5894,32.2668' },
+  { name: 'Faiyum', arabicName: 'الفيوم', location: '29.3088,30.8458' },
+  { name: 'Damanhur', arabicName: 'دمنهور', location: '31.0352,30.4538' },
+  { name: 'Beni Suef', arabicName: 'بني سويف', location: '29.0733,31.0982' },
+  { name: 'Qena', arabicName: 'قنا', location: '26.1603,32.7157' },
+  { name: 'Sohag', arabicName: 'سوهاج', location: '26.5585,31.6968' },
+  { name: 'Kafr el-Sheikh', arabicName: 'كفر الشيخ', location: '31.1041,30.9338' },
+  { name: 'Matruh', arabicName: 'مطروح', location: '31.3547,27.2586' },
+  { name: 'Red Sea', arabicName: 'البحر الأحمر', location: '26.3492,33.2333' },
+  { name: 'North Sinai', arabicName: 'شمال سيناء', location: '30.5894,33.9500' },
+  { name: 'South Sinai', arabicName: 'جنوب سيناء', location: '28.5667,33.8333' },
+  { name: 'New Valley', arabicName: 'الوادي الجديد', location: '25.4408,30.6208' },
+  { name: '6th of October', arabicName: 'السادس من أكتوبر', location: '29.9892,31.2964' },
+  { name: 'Beni Mazar', arabicName: 'بني مزار', location: '28.1556,30.5825' },
+  { name: 'El Wadi El Gadid', arabicName: 'الوادي الجديد', location: '24.5333,30.5833' },
+  { name: 'Helwan', arabicName: 'حلوان', location: '29.8444,31.3197' },
+  { name: 'Sharkia', arabicName: 'الشرقية', location: '30.5826,31.4914' },
+  { name: 'Dumiat', arabicName: 'دمياط', location: '31.1833,31.4167' },
+  { name: 'Ras El Bar', arabicName: 'رأس البر', location: '31.4030,31.8798' }
+];
+
+module.exports = governorates;
