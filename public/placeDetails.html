@@ -56,27 +56,19 @@
         <div id="place-details">
             <!-- Details will be populated here -->
         </div>
-        <button class="back-button" onclick="goBack()">Back to Profile</button>
-        <button class="logout-button" onclick="logout()">Logout</button>
+        <button class="back-button" onclick="journey()">show your journey</button>
     </div>
     <div id="map"></div>
 
     <script>
+
+
+let userLatitude = localStorage.getItem('userLatitude');
+            let userLongitude = localStorage.getItem('userLongitude');
+            let placelatitude;
+            let placelongitude;
         let map;
-
-        function initMap(place) {
-            const placeLocation = { lat: parseFloat(place.location.lat), lng: parseFloat(place.location.lng) };
-
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: placeLocation,
-                zoom: 14
-            });
-            new google.maps.Marker({
-                position: placeLocation,
-                map: map,
-                title: place.name
-            });
-        }
+        
 
         document.addEventListener('DOMContentLoaded', async function() {
             const url = window.location.pathname;
@@ -85,15 +77,18 @@
             const city = segments[1];
             const placeId = segments[2];
 
+
             console.log('City:', city);
             console.log('Place ID:', placeId);
 
+            const selectedOptions = JSON.parse(localStorage.getItem('selectedOptions'));
             try {
                 const response = await fetch(`/api/v1/places/${city}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'options': selectedOptions
                     }
                 });
 
@@ -106,12 +101,17 @@
 
                 const place = data.data.places.find(place => place.placeId === placeId);
                 console.log(place);
+
+                // Populate the place details
+                placelatitude = place.location.lat;
+                placelongitude = place.location.lng;
+                console.log(placelatitude);
                 const placeDetails = document.getElementById('place-details');
                 placeDetails.innerHTML = `
                     <p><strong>Name:</strong> ${place.name}</p>
                     <p><strong>Address:</strong> ${place.address}</p>
                     <p><strong>Rating:</strong> ${place.rating}</p>
-                    <p><strong>Open Now:</strong> ${place.open_now.open_now}</p>
+                    <p><strong>Opening Hours:</strong> ${place.opening_hours?.open_now ? 'Open' : 'Closed'}</p>
                     <p><strong>Price Level:</strong> ${place.price_level}</p>
                     <p><strong>User Ratings Total:</strong> ${place.user_ratings_total}</p>
                     <div>
@@ -121,16 +121,66 @@
                 `;
 
                 // Initialize the map with the place location
-                initMap(place);
 
             } catch (error) {
                 alert(error.message);
             }
         });
+        async function journey() {
+            const location = {
+                userlat: userLatitude,
+                userlng: userLongitude,
+                placelat: placelatitude,
+                placelng: placelongitude
+            };
+            console.log('Journey clicked');
+            try {
+                const response = await fetch ('/api/v1/journeys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    body: JSON.stringify({
+                        location: location,
+                        city : window.location.pathname.split('/')[1],
+                        transport : 'car'
 
-        function goBack() {
-            window.history.back();
-        }
+
+                    })
+                });
+
+                
+            } 
+
+            catch (error) {
+                alert(error.message);
+            }
+        
+               
+    // Get the base URL from the current window
+    const baseUrl = window.location.origin;
+
+    // Path to append
+    const path = '/microbus';
+
+    // Build the query parameters
+    const params = new URLSearchParams({
+        placelatitude,
+        placelongitude,
+        userLatitude,
+        userLongitude
+    }).toString();
+
+    // Construct the new URL
+    const newUrl = `${baseUrl}${path}?${params}`;
+
+    // Open the new URL in a new tab
+    window.open(newUrl, '_blank');
+
+}
+
+
     </script>
 </body>
 </html>

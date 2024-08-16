@@ -51,7 +51,6 @@ exports.signup = catchAsync(async (req, res, next) => {
   newUser.verificationToken = verificationToken;
   await newUser.save({ validateBeforeSave: false });
   const verificationLink = `http://${req.get('host')}/api/v1/users/verify-email?token=${verificationToken}`;
-  // console.log(verificationLink);
   await sendVerificationEmail(newUser.email, verificationLink);
   createSendToken(newUser, 201, res);
 });
@@ -91,22 +90,18 @@ exports.logout = (req, res) => {
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
- console.log(req.headers);
   // 1) Getting token and check of it's there
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
-    console.log(req.headers.authorization)
     token = req.headers.authorization.split(' ')[1];
   } else if (req.cookies.jwt) {
-    console.log("2")
 
     token = req.cookies.jwt;
   }
 
-  console.log(token);
 
   if (!token) {
     return next(
@@ -270,35 +265,26 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     .createHash('sha256')
     .update(req.params.resetToken)
     .digest('hex');
-  console.log(1);
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() }
   });
-  console.log(2);
 
   // 2) If token has not expired, and there is user, set the new password
   if (!user) {
     return next(new AppError({ english: 'Token is invalid or has expired', arabic: 'الرمز غير صالح او منتهي الصلاحية' }, 400));
   }
-  console.log(3);
   
   user.password = req.body.password;
-  console.log(4);
   user.passwordConfirm = req.body.passwordConfirm;
-  console.log(5);
   user.passwordResetToken = undefined;
-  console.log(6);
   user.passwordResetExpires = undefined;
-  console.log(7);
   await user.save();
 
-  console.log(8);
 
   // 3) Update changedPasswordAt property for the user
   // 4) Log the user in, send JWT
   createSendToken(user, 200, res);
-  console.log(9);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {

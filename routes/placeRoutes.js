@@ -7,7 +7,7 @@ const router = express.Router();
 router
     .route("/")
     .get(authControllers.protect,placeControllers.getAllPlaces)
-    .post(authControllers.protect,authControllers.restrictTo("admin"),placeControllers.createPlace);
+    .post(authControllers.protect,placeControllers.createPlace);
 router  
     .route("/:city")
     .get(authControllers.protect,placeControllers.getPlace)

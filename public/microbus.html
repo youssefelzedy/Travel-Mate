@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Find Nearest Point and Directions</title>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOzf-XaussCXmQ7jdKxZriWMjLcqPZDbo&libraries=places,geometry"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            z-index: 5;
+        }
+
+        #directions-panel-1,
+        #directions-panel-2 {
+            position: absolute;
+            top: 10px;
+            width: 300px;
+            background: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            z-index: 5;
+            height: 50%;
+            overflow-y: auto;
+        }
+
+        #directions-panel-1 {
+            left: 10px;
+        }
+
+        #directions-panel-2 {
+            left: 320px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info">
+        <p>Your location: <span id="currentLocation"></span></p>
+        <p>Closest point: <span id="closestPoint"></span></p>
+        <p>Second closest point: <span id="closestPoint2"></span></p>
+    </div>
+    <div id="map"></div>
+    <div id="directions-panel-1"></div>
+    <div id="directions-panel-2"></div>
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer1;
+        let directionsRenderer2;
+        
+        //{ lat: 31.2641, lng: 32.3052 },
+        //{ lat: 31.2649, lng: 32.3030 }
+        //{ lat: 31.2646, lng: 32.2877 }
+
+        const elzhoor = [
+        { lat: 31.2641, lng: 32.2881 },
+        { lat: 31.2647, lng: 32.2870 },
+        { lat: 31.2658, lng: 32.2843 },
+        { lat: 31.2659, lng: 32.2836 },
+        { lat: 31.2667, lng: 32.2801 },
+        { lat: 31.2683, lng: 32.2805 },
+        { lat: 31.2683, lng: 32.2803 },
+        { lat: 31.2669, lng: 32.2798 },
+        { lat: 31.2669, lng: 32.2791 },
+        { lat: 31.2672, lng: 32.2780 },
+        { lat: 31.2671, lng: 32.2780 },
+        { lat: 31.2669, lng: 32.2788 },
+        { lat: 31.2665, lng: 32.2802 },
+        { lat: 31.2660, lng: 32.2823 },
+        { lat: 31.2656, lng: 32.2845 },
+        { lat: 31.2648, lng: 32.2865 },
+        { lat: 31.2639, lng: 32.2881 },
+        { lat: 31.2634, lng: 32.2890 },
+        { lat: 31.2623, lng: 32.2910 },
+        { lat: 31.2621, lng: 32.2909 },
+        { lat: 31.2610, lng: 32.2901 },
+        { lat: 31.2604, lng: 32.2899 },
+        { lat: 31.2595, lng: 32.2913 },
+        { lat: 31.2585, lng: 32.2917 },
+        { lat: 31.2574, lng: 32.2910 },
+        { lat: 31.2536, lng: 32.2880 },
+        { lat: 31.2536, lng: 32.2881 },
+        { lat: 31.2564, lng: 32.2904 },
+        { lat: 31.2589, lng: 32.2924 },
+        { lat: 31.2585, lng: 32.2930 },
+        { lat: 31.2585, lng: 32.2933 },
+        { lat: 31.2595, lng: 32.2927 },
+        { lat: 31.2609, lng: 32.2935 },
+        { lat: 31.2621, lng: 32.2915 },
+        { lat: 31.2628, lng: 32.2904 },
+        { lat: 31.2635, lng: 32.2892 }
+        ];
+        const points = [
+        { lat: 31.2640, lng: 32.2887 },
+        { lat: 31.2650, lng: 32.2895 },
+        { lat: 31.2649, lng: 32.2898 },
+        { lat: 31.2660, lng: 32.2907 },
+        { lat: 31.2674, lng: 32.2918 },
+        { lat: 31.2688, lng: 32.2928 },
+        { lat: 31.2685, lng: 32.2937 },
+        { lat: 31.2664, lng: 32.2973 },
+        { lat: 31.2656, lng: 32.2989 },
+        { lat: 31.2643, lng: 32.3012 },
+        { lat: 31.2629, lng: 32.3037 },
+        { lat: 31.2613, lng: 32.3064 },
+        { lat: 31.2612, lng: 32.3067 },
+        { lat: 31.2607, lng: 32.3070 },
+        { lat: 31.2613, lng: 32.3073 },
+        { lat: 31.2632, lng: 32.3077 },
+        { lat: 31.2641, lng: 32.3052 },
+        { lat: 31.2649, lng: 32.3030 },
+        { lat: 31.2659, lng: 32.3002 },
+        { lat: 31.2664, lng: 32.2987 },
+        { lat: 31.2672, lng: 32.2964 },
+        { lat: 31.2684, lng: 32.2958 },
+        { lat: 31.2687, lng: 32.2940 },
+        { lat: 31.2691, lng: 32.2927 },
+        { lat: 31.2699, lng: 32.2931 },
+        { lat: 31.2705, lng: 32.2929 },
+        { lat: 31.2704, lng: 32.2923 },
+        { lat: 31.2694, lng: 32.2920 },
+        { lat: 31.2689, lng: 32.2922 },
+        { lat: 31.2677, lng: 32.2913 },
+        { lat: 31.2667, lng: 32.2908 },
+        { lat: 31.2658, lng: 32.2900 },
+        { lat: 31.2641, lng: 32.2886 }
+        ];
+
+        
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: { lat: 31.2638, lng: 32.2888 }
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer1 = new google.maps.DirectionsRenderer();
+            directionsRenderer2 = new google.maps.DirectionsRenderer();
+            directionsRenderer3 = new google.maps.DirectionsRenderer();
+            //directionsRenderer4 = new google.maps.DirectionsRenderer();
+
+            directionsRenderer3.setMap(map);
+
+            directionsRenderer1.setMap(map);
+            directionsRenderer1.setPanel(document.getElementById('directions-panel-1'));
+
+            directionsRenderer2.setMap(map);
+            directionsRenderer2.setPanel(document.getElementById('directions-panel-2'));
+
+            //directionsRenderer4.setMap(map);
+            //directionsRenderer4.setPanel(document.getElementById('directions-panel-3'));
+            const params = new URLSearchParams(window.location.search)
+            console.log(params.get('placelatitude'));
+            // Example hardcoded locations
+            const userLocation = { lat: params.get('userlatitude'), lng: params.get('userlongitude') }; 
+            const disLocation = { lat: params.get('placelatitude'), lng: params.get('placelongitude') };
+            //{ lat: 31.2722, lng: 32.2685 }
+            //{ lat: 31.2667, lng: 32.3046 }
+            //{ lat: 31.2646, lng: 32.2877 }
+            //{ lat: 31.2638, lng: 32.2888 }
+            
+
+
+            // Add markers for user location
+            //new google.maps.Marker({
+            //    position: userLocation,
+            //    map: map,
+            //    title: 'Your Location'
+            //});
+
+
+            // Find closest points
+            const closest = findClosestPoint(userLocation, points);
+            const closest2 = findClosestPoint(disLocation, points);
+
+            const elzhoorclosest = findClosestPoint(userLocation, elzhoor);
+            const elzhoorclosest2 = findClosestPoint(disLocation, elzhoor);
+            //calculateAndDisplayRoute2(points, closest, closest2);
+
+            // Add markers for closest points
+            /*
+            new google.maps.Marker({
+                position: closest,
+                map: map,
+                title: 'Closest Point'
+            });
+            new google.maps.Marker({
+                position: closest2,
+                map: map,
+                title: 'Closest Point 2'
+            });
+            */
+
+            const allClosestPointsToDis = [
+            {lat:closest2.lat, lng:closest.lng},
+            {lat:elzhoorclosest2.lat, lng:elzhoorclosest.lng}
+            ];
+            
+            const lastClosestPoint = findClosestPoint(disLocation, allClosestPointsToDis);
+
+            if(lastClosestPoint == closest2){
+                calculateAndDisplayRoute2(points, closest, closest2);
+                calculateAndDisplayRoute(userLocation, closest, directionsRenderer1);
+                calculateAndDisplayRoute(closest2, disLocation, directionsRenderer2);
+
+            }
+            else{
+                calculateAndDisplayRoute2(elzhoor, elzhoorclosest, elzhoorclosest2);
+                calculateAndDisplayRoute(userLocation, elzhoorclosest, directionsRenderer1);
+                calculateAndDisplayRoute(elzhoorclosest2, disLocation, directionsRenderer2);
+            }
+            // Get directions to the closest point
+
+            // Update location info
+            document.getElementById('currentLocation').textContent = `Latitude: ${userLocation.lat.toFixed(4)}, Longitude: ${userLocation.lng.toFixed(4)}`;
+            document.getElementById('closestPoint').textContent = `Latitude: ${closest.lat.toFixed(4)}, Longitude: ${closest.lng.toFixed(4)}`;
+            document.getElementById('closestPoint2').textContent = `Latitude: ${closest2.lat.toFixed(4)}, Longitude: ${closest2.lng.toFixed(4)}`;
+        }
+
+        function findClosestPoint(location, points) {
+            let closestPoint = null;
+            let minDistance = Infinity;
+
+            points.forEach(point => {
+                const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(location.lat, location.lng),
+                    new google.maps.LatLng(point.lat, point.lng)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPoint = point;
+                }
+            });
+
+            return closestPoint;
+        }
+
+        function calculateAndDisplayRoute(origin, destination, directionsRenderer) {
+            directionsService.route({
+                origin: new google.maps.LatLng(origin.lat, origin.lng),
+                destination: new google.maps.LatLng(destination.lat, destination.lng),
+                travelMode: google.maps.TravelMode.WALKING,
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                } else {
+                    console.error('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+        function calculateAndDisplayRoute2(coordinates, st, ed) {
+
+            let cooord = [];
+            let bool = false;
+            for (let i = 0; i < coordinates.length; i++) {
+                if (coordinates[i].lat == st.lat && coordinates[i].lng == st.lng) {
+                    bool = true;
+                }
+                if (bool) {
+                    if (coordinates[i].lat == ed.lat && coordinates[i].lng == ed.lng) {
+                        cooord.push(coordinates[i]);
+                        break;
+                    }
+                    cooord.push(coordinates[i]);
+                }
+            }
+            const waypoints = cooord.slice(1, -1).map(coord => ({
+                location: new google.maps.LatLng(coord.lat, coord.lng),
+                stopover: false
+            }));
+
+            directionsService.route({
+                origin: new google.maps.LatLng(cooord[0].lat, cooord[0].lng),
+                destination: new google.maps.LatLng(cooord[cooord.length - 1].lat, cooord[cooord.length - 1].lng),
+                waypoints: waypoints,
+                optimizeWaypoints: true,
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer3.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

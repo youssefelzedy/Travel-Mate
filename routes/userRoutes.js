@@ -13,11 +13,11 @@ router.patch ("/update-password",authController.protect,authController.updatePas
 
 router
     .route("/")
-    .get(authController.protect,authController.restrictTo("admin"), userControllers.getAllUsers)
+    .get(authController.protect, userControllers.getAllUsers)
 
 router
     .route("/:id")
-    .get(authController.protect,authController.restrictTo("admin"),userControllers.getUser)
+    .get(authController.protect,userControllers.getUser)
     .patch(authController.protect,authController.restrictTo("admin"),userControllers.updateUser)
     .delete(authController.protect,authController.restrictTo("admin"),userControllers.deleteUser);
 

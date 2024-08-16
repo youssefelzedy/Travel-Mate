@@ -54,17 +54,18 @@
     </div>
 
     <script>
+       const selectedOptions = JSON.parse(localStorage.getItem('selectedOptions'))
         document.addEventListener('DOMContentLoaded', async function() {
             const city = window.location.pathname.split('/').pop();
-            console.log(city);
 
             try {
                 const response = await fetch(`/api/v1/places/${city}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'options': selectedOptions
+                        }
                 });
 
                 if (!response.ok) {
@@ -72,14 +73,13 @@
                 }
 
                 const data = await response.json();
-                console.log(data);
 
                 const placeDetails = document.getElementById('place-details');
                 placeDetails.innerHTML = `
                     <p><strong>City:</strong> ${city}</p>
                     <p><strong>Number of Places:</strong> ${data.results}</p>
                     <ul>
-                        ${data.data.places.map(place => `<li class="place-item" onclick="window.location.href = '/${city}/${place.placeId}';">${place.name}</li>`).join('')} console.log(data.data.places)}
+                        ${data.data.places.map(place => `<li class="place-item" onclick="window.location.href = '/${city}/${place.placeId}';">${place.name}</li>`).join('')} 
 
                     </ul>
                 `;

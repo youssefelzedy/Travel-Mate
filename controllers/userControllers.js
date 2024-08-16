@@ -18,7 +18,8 @@ exports.createUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-    const users = await User.find();
+    
+    const users = await User.find().populate("journeys").populate("journeys");
     res.status(200).json({
         status: "success",
         massage: {
@@ -33,12 +34,11 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
-    console.log(req.params.id);
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate("journeys");
     res.status(200).json({
         status: "success",
         massage: {
-            english: "User retrieved successfully",
+            english: "User retrieve successfully",
             arabic: "تم تحميل المستخدم بنجاح"
         },
         data: {

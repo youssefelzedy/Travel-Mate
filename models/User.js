@@ -28,7 +28,8 @@ const UserSchema = new Schema(
     },
     passwordConfirm:{
         type:String,
-        required: [true, { english: "Please add a confirm password", arabic: "يرجى إضافة تأكيد كلمة المرور" }],
+        // that is a bug i will fix later
+        // required: [true, { english: "Please add a confirm password", arabic: "يرجى إضافة تأكيد كلمة المرور" }],
         validate:{
             validator:function(el){
                 return el === this.password
@@ -48,6 +49,12 @@ const UserSchema = new Schema(
        enum:["user","admin"],
        default:"user"
     },
+    journeys: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Journey"
+        }
+    ],
     verificationToken: String,
   isVerified: {
     type: Boolean,
@@ -62,15 +69,30 @@ const UserSchema = new Schema(
 }
 );
 
-UserSchema.pre('save', async function(next) {
+
+// Pre-save hook to hash the password
+UserSchema.pre('save', async function (next) {
+    console.log("pre-save hook called");
+    
     // Only run this function if password was actually modified
-    if (!this.isModified('password')) return next();
+    if (!this.isModified('password')) {
+      console.log("Password not modified");
+      return next();
+    }
   
     // Hash the password with cost of 12
     this.password = await bcrypt.hash(this.password, 12);
   
     // Delete passwordConfirm field
     this.passwordConfirm = undefined;
+    next();
+  });
+  
+  UserSchema.pre('save', function(next) {
+    console.log(this.passwordChangedAt);
+    if (!this.isModified('password') || this.isNew) return next();
+  
+    this.passwordChangedAt = Date.now() - 1000;
     next();
   });
 

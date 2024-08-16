@@ -37,15 +37,24 @@ exports.getAllPlaces = catchAsync(async (req, res, next) => {
 
 
 exports.getPlace = catchAsync(async (req, res, next) => {
+    console.log("1");
     // Find the city by governorate name from request params
     const place = cities.find(city => city.name === req.params.city);    
 
+  let options 
+  if (req.headers['options']){
+    options = req.headers['options'];
+    options = options.split(',').map(option => option.trim());
+  }
 
-    if (!place) {
-        return next(new AppError({ english: "City not found", arabic: "المدينة غير موجودة" }, 404));
-    }
 
-    const places = await getPlacesInCity(place.location);
+  
+
+
+
+    // Process the options and send a response
+
+    const places = await getPlacesInCity(place.location, 10000, options);
 
     res.status(200).json({
         status: "success",

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .profile-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+        .profile-container h2 {
+            margin-bottom: 20px;
+        }
+        .profile-container p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .cities-container {
+            margin-top: 20px;
+        }
+        .logout-button, .fetch-places-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .place-item {
+            cursor: pointer;
+            color: blue;
+        }
+        .place-item:hover {
+            text-decoration: underline;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content label {
+            display: block;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .dropdown-content input {
+            margin-right: 10px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .fetch-places-button {
+            margin-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h2>User Profile</h2>
+        <p id="fullname">Full Name: </p>
+        <p id="email">Email: </p>
+        <p id="role">Role: </p>
+
+
+     <button id="getLocation">Find Nearby Places</button>
+        <script>
+        document.getElementById('getLocation').addEventListener('click', () => {
+            fetchUserLocationAndPlaces();
+        });
+
+        const fetchUserLocationAndPlaces = async () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+      localStorage.setItem('userLatitude', latitude);
+      localStorage.setItem('userLongitude', longitude);
+      const location = `${latitude},${longitude}`;
+    }, (error) => {
+      console.error('Error getting location:', error);
+    });
+  } else {
+    console.error('Geolocation is not supported by this browser.');
+  }
+};
+
+
+        </script>
+        <div class="dropdown">
+            <button>Choose places</button>
+            <div class="dropdown-content">
+                <label><input type="checkbox" value="hospital"> Hospital</label>
+                <label><input type="checkbox" value="shopping_mall"> Shopping Mall</label>
+                <label><input type="checkbox" value="gym"> Gym</label>
+                <label><input type="checkbox" value="tourist_attraction"> Tourist attraction</label>
+                <label><input type="checkbox" value="historical"> Historical</label>
+                <label><input type="checkbox" value="airport"> Airport</label>
+                <label><input type="checkbox" value="atm"> ATM</label>
+                <label><input type="checkbox" value="bank"> Bank</label>
+                <label><input type="checkbox" value="bus_station"> Bus Station</label>
+                <label><input type="checkbox" value="cafe"> Cafe</label>
+                <label><input type="checkbox" value="clothing_store"> Clothing Store</label>
+                <label><input type="checkbox" value="gas_station"> Gas Station</label>
+                <label><input type="checkbox" value="park"> Park</label>
+                <label><input type="checkbox" value="museum"> Museum</label>
+                <label><input type="checkbox" value="pharmacy"> Pharmacy</label>
+                <label><input type="checkbox" value="restaurant"> Restaurant</label>
+                <label><input type="checkbox" value="zoo"> Zoo</label>
+                <label><input type="checkbox" value="train_station"> Train Station</label>
+            </div>
+        </div>
+        <button class="fetch-places-button" onclick="fetchSelectedPlaces()">Fetch Places</button>
+
+        <div class="cities-container">
+            <h3>Cities</h3>
+            <ul id="cities-list"></ul>
+        </div>
+        <button class="logout-button" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+                function fetchSelectedPlaces() {
+            const checkboxes = document.querySelectorAll('.dropdown-content input[type="checkbox"]');
+            const selectedOptions = Array.from(checkboxes)
+                                        .filter(checkbox => checkbox.checked)
+                                        .map(checkbox => checkbox.value);
+
+            // Store the selected options in local storage
+            localStorage.setItem('selectedOptions', JSON.stringify(selectedOptions));
+            console.log('Selected places:', selectedOptions);
+        
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const userId = window.location.pathname.split('/')[2];
+            console.log(userId);
+
+            try {
+                const userProfileResponse = await fetch(`/api/v1/users/${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    }
+                });
+                
+                if (!userProfileResponse.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const userData = await userProfileResponse.json();
+                console.log(userData);
+
+                document.getElementById('fullname').textContent = `Full Name: ${userData.data.user.fullname}`;
+                document.getElementById('email').textContent = `Email: ${userData.data.user.email}`;
+                document.getElementById('role').textContent = `Role: ${userData.data.user.role}`;
+
+
+                const citiesResponse = await fetch('/api/v1/places', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!citiesResponse.ok) {
+                    throw new Error('Failed to fetch cities');
+                }
+
+                const citiesData = await citiesResponse.json();
+                console.log(citiesData.data);
+                const citiesList = document.getElementById('cities-list');
+                citiesData.data.places.forEach(place => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = place.city;
+                    listItem.classList.add('place-item');
+                    listItem.addEventListener('click', () => {
+                        window.location.href = `/city/${place.city}`;
+                    });
+                    citiesList.appendChild(listItem);
+                });
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+       
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login';
+        }
+    </script>
+</body>
+</html>

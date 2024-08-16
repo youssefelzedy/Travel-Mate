@@ -79,7 +79,7 @@
             if (response.ok) {
                 const data = await response.json();
                 alert('Signup successful! Please check your email for verification.');
-                window.location.href = '/users/login';
+                window.location.href = '/login';
             } else {
                 const errorData = await response.json();
                 alert(`Error: ${errorData.message}`);

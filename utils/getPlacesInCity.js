@@ -2,7 +2,8 @@ const axios = require('axios');
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
-const fetchPlaces = async (location, radius = 10000, types = [ 'hospital']) => {
+const fetchPlaces = async (location, radius = 10000, types = ['restaurant', 'tourist_attraction'] ) => {
+
   const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${location}&radius=${radius}&type=${types.join('|')}&key=${apiKey}`;
 
   try {
