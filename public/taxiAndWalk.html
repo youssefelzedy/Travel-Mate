@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps Route Simulation with Districts</title>
+    <style>
+        /* Set the size of the map */
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        #districts {
+            margin-top: 20px;
+        }
+        .button {
+            margin-top: 10px;
+        }
+    </style>
+    <!-- Include the Google Maps JavaScript API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiMJ_mpywf-0DeJYRcWO8H4W3EA-59TUs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let startMarker;
+        let endMarker;
+        let start = null;
+        let end = null;
+        let routePath;
+        let carMarker;
+        let districtInfo;
+        let currentIndex = 0;
+        let intervalId;
+
+        // Mapping of English to Arabic district names
+        const districtMapping = {
+            "El Sharq": "قسم الشروق",
+            "Al Arab": "قسم العرب",
+            "El Manakh": "قسم المناخ",
+            "Al Zohour": "قسم الزهور",
+            "قسم الشرق": "قسم الشروق",
+            'قسم الشروق': 'الشروق',
+            'قسم الشروق': 'الشرق',
+            "قسم المناخ": "المناخ",
+            "قسم الزهور": "الزهور",
+            "قسم العرب": "العرب"
+        };
+
+        function normalizeDistrict(district) {
+            // If the district is in English or has a known variation, convert it to its Arabic equivalent
+            for (let key in districtMapping) {
+                if (district === key || district === districtMapping[key]) {
+                    return districtMapping[key];
+                }
+            }
+            // If the district is not mapped, return it as is
+            return district;
+        }
+
+        function initMap() {
+            // Create a map centered at a specific location
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 7,
+                center: {lat: 31.07586060, lng: 32.26538870 } // Default center
+            });
+
+            // Set up the directions service and renderer
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                polylineOptions: {
+                    strokeColor: 'blue',
+                    strokeOpacity: 0.5,
+                    strokeWeight: 4
+                }
+            });
+            directionsRenderer.setMap(map);
+
+            // Add click listener to the map
+            map.addListener('click', function(event) {
+                if (!start) {
+                    setStartPoint(event.latLng);
+                } else if (!end) {
+                    setEndPoint(event.latLng);
+                }
+            });
+
+            // Set up the 'Calculate Route' button
+            document.getElementById('calculateRoute').addEventListener('click', function() {
+                if (start && end) {
+                    calculateAndDisplayRoute();
+                } else {
+                    alert('Please set both start and end points on the map.');
+                }
+            });
+
+            // Set up the 'Start Simulation' button
+            document.getElementById('startSimulation').addEventListener('click', function() {
+                if (routePath) {
+                    startSimulation();
+                } else {
+                    alert('Please calculate the route first.');
+                }
+            });
+
+            // Set up the 'Stop Simulation' button
+            document.getElementById('stopSimulation').addEventListener('click', function() {
+                stopSimulation();
+            });
+
+            // Set districtInfo element reference
+            districtInfo = document.getElementById('districts');
+        }
+
+        function setStartPoint(location) {
+            if (startMarker) {
+                startMarker.setMap(null);
+            }
+            start = location;
+            startMarker = new google.maps.Marker({
+                position: start,
+                map: map,
+                title: 'Start Point',
+                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            });
+            alert('Start point set. Click on the map to set the end point.');
+        }
+
+        function setEndPoint(location) {
+            if (endMarker) {
+                endMarker.setMap(null);
+            }
+            end = location;
+            endMarker = new google.maps.Marker({
+                position: end,
+                map: map,
+                title: 'End Point',
+                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+            });
+            alert('End point set. Click "Calculate Route" to draw the route.');
+        }
+
+        function calculateAndDisplayRoute() {
+            if (!start || !end) return;
+
+            const travelMode = document.querySelector('input[name="travelMode"]:checked').value;
+
+            // Set up the route request
+            const request = {
+                origin: start,
+                destination: end,
+                travelMode: google.maps.TravelMode[travelMode]
+            };
+
+            // Set line style for walking mode
+            if (travelMode === 'WALKING') {
+                directionsRenderer.setOptions({
+                    polylineOptions: {
+                        strokeColor: '#FF0000', // Color red
+                        strokeOpacity: 1.0,
+                        strokeWeight: 2,
+                        icons: [{
+                            icon: {
+                                path: 'M 0,-1 0,1', // Defines a dashed line pattern
+                                strokeOpacity: 1,
+                                scale: 4
+                            },
+                            offset: '0',
+                            repeat: '10px' // The dash pattern repeats every 10px
+                        }]
+                    }
+                });
+            } else {
+                // Reset to default for other modes
+                directionsRenderer.setOptions({
+                    polylineOptions: {
+                        strokeColor: 'blue',
+                        strokeOpacity: 0.5,
+                        strokeWeight: 4,
+                        icons: []
+                    }
+                });
+            }
+
+            // Get the route and render it on the map
+            directionsService.route(request, function(result, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    const route = result.routes[0].overview_path;
+                    routePath = route;
+
+                    // Display the districts along the route
+                    getDistrictsAlongRoute(route);
+                } else {
+                    alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+        async function getDistrictFromLatLng(lat, lng) {
+            try {
+                const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+                    params: {
+                        latlng: `${lat},${lng}`,
+                        key: 'AIzaSyDiMJ_mpywf-0DeJYRcWO8H4W3EA-59TUs'
+                    }
+                });
+
+                if (response.data.results.length > 0) {
+                    const addressComponents = response.data.results[0].address_components;
+
+                    // Find the district component
+                    const districtComponent = addressComponents.find(component => 
+                        component.types.includes('locality') || 
+                        component.types.includes('sublocality') ||
+                        component.types.includes('administrative_area_level_2')
+                    );
+
+                    if (districtComponent) {
+                        const normalizedDistrict = normalizeDistrict(districtComponent.long_name);
+                        return normalizedDistrict;  // Return the normalized district name
+                    } else {
+                        return 'Unknown District';
+                    }
+                } else {
+                    throw new Error('No results found for the given location');
+                }
+            } catch (error) {
+                console.error('Error fetching district information:', error.message);
+                return 'Unknown District';
+            }
+        }
+
+        async function getDistrictsAlongRoute(route) {
+            const districts = new Set(); // To store unique districts
+            for (let i = 0; i < route.length; i += Math.floor(route.length / 10)) { // Sample a few points along the route
+                let latLng = route[i];
+                const district = await getDistrictFromLatLng(latLng.lat(), latLng.lng());
+                if (district && district !== 'Port Fouad City' && district !== 'بورسعيد' && district !== 'بور سعيد') {
+                    districts.add(district);
+                }
+            }
+
+            // Display the districts
+            const districtList = Array.from(districts).join(', ');
+            const totalDistricts = districts.size;
+            if (totalDistricts === 1) {
+                districtInfo.innerText = 'District passed through: ' + districtList + ' total: 12$';
+            } else if (totalDistricts === 2 || totalDistricts === 3) {
+                districtInfo.innerText = 'District passed through: ' + districtList + ' total: 16$';
+            } else if (totalDistricts === 4) {
+                districtInfo.innerText = 'District passed through: ' + districtList + ' total: 22.5$';
+            } else {
+                districtInfo.innerText = 'unknown' + districtList;
+            }
+        }
+
+        function startSimulation() {
+            if (carMarker) {
+                carMarker.setMap(null);
+            }
+
+            // Initialize car marker
+            carMarker = new google.maps.Marker({
+                position: routePath[0],
+                map: map,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                title: 'Car'
+            });
+
+            currentIndex = 0;
+            intervalId = setInterval(moveCar, 1000); // Move the car every second
+        }
+
+        function stopSimulation() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            if (carMarker) {
+                carMarker.setMap(null);
+            }
+        }
+
+        function moveCar() {
+            if (currentIndex >= routePath.length) {
+                stopSimulation();
+                return;
+            }
+
+            carMarker.setPosition(routePath[currentIndex]);
+            map.setCenter(routePath[currentIndex]);
+            currentIndex++;
+        }
+
+        window.onload = initMap;
+    </script>
+</head>
+<body>
+    <h1>Google Maps Route Simulation</h1>
+    <div id="map"></div>
+    <div class="button">
+        <label><input type="radio" name="travelMode" value="DRIVING" checked> Driving</label>
+        <label><input type="radio" name="travelMode" value="WALKING"> Walking</label>
+    </div>
+    <button id="calculateRoute">Calculate Route</button>
+    <button id="startSimulation">Start Simulation</button>
+    <button id="stopSimulation">Stop Simulation</button>
+    <div id="districts">Districts information will appear here.</div>
+</body>
+</html>
