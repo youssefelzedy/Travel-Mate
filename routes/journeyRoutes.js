@@ -14,4 +14,6 @@ router
     .patch(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.updateJourney)
     .delete(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.deleteJourney);
 
+router.route("/search-microbus").post(journeyControllers.searchMicrobus);
+
 module.exports = router
