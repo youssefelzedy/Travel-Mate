@@ -1,5 +1,7 @@
 const geolib = require("geolib");
 const fs = require("fs").promises;
+const path = require('path');
+const graph = require("./graph");
 
 class PriorityQueue {
   constructor() {
@@ -133,7 +135,8 @@ class BusLine {
   
     async initializeData() {
       try {
-        const data = await fs.readFile("AlaminAndAlzhorNormal.json", "utf8");
+        const pth = path.resolve('./storage/roads-locations.json')
+        const data = await fs.readFile(`${pth}`, "utf8");
         this.pointsLine = JSON.parse(data);
   
         this._putClosestBusStops(this.location, "location");
@@ -154,15 +157,15 @@ class BusLine {
         this.calcDistance();
         this.preparingResult();
   
-        try {
-          fs.writeFile(
-            `dijkstra_result.json`,
-            JSON.stringify(this.finalResult, null, 2),
-            "utf8"
-          );
-        } catch (error) {
-          console.error("Error Writing JSON file:", error);
-        }
+        // try {
+        //   fs.writeFile(
+        //     `dijkstra_result.json`,
+        //     JSON.stringify(this.finalResult, null, 2),
+        //     "utf8"
+        //   );
+        // } catch (error) {
+        //   console.error("Error Writing JSON file:", error);
+        // }
       } catch (error) {
         console.error("Error reading JSON file:", error);
       }
@@ -252,3 +255,12 @@ class BusLine {
       this.finalResult.totalFee = theLine.totalFee + 3.5;
     }
   }
+
+// const location = { lat: 31.2587584192, lng: 32.2931440543 };
+// const destination = { lat: 31.2607126949, lng: 32.3071995724 };
+// let test = new BusLine(location, destination);
+// test.initializeData().then(() => {
+//   console.log(test.finalResult);
+// });
+
+module.exports = BusLine;
