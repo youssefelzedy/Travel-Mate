@@ -2,6 +2,8 @@ const Journey = require("../models/Journey");
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const e = require("express");
+const microbus = require("../utils/microbus");
 
 
 exports.getAllJourneys = catchAsync(async (req, res, next) => {
@@ -89,3 +91,46 @@ exports.deleteJourney = catchAsync(async (req, res, next) => {
     });
 })
 
+exports.searchMicrobus = catchAsync(async (req, res, next) => {
+
+    // const location = { lat: 31.2587584192, lng: 32.2931440543 };
+    // const destination = { lat: 31.2607126949, lng: 32.3071995724 };
+    try {
+        const location_lat = req.body.location.lat;
+        const location_lng = req.body.location.lng;
+        const destination_lat = req.body.destination.lat;
+        const destination_lng = req.body.destination.lng;
+    
+        const location = { lat: location_lat, lng: location_lng };
+        const destination = { lat: destination_lat, lng: destination_lng };
+
+        console.log(location);
+        console.log(destination);
+    
+        const coreMicrobus = new microbus(location, destination);
+        coreMicrobus.initializeData().then(() => {
+            res.status(200).json({
+                status: "success",
+                massage: {
+                    english: "Microbus search completed successfully",
+                    arabic: "تم البحث عن الميكروباص بنجاح"
+                },
+                data: {
+                    result: coreMicrobus.finalResult
+                }
+            });
+        });
+    }
+    catch (err) {
+        res.status(400).json({
+            status: "fail",
+            massage: {
+                english: "Microbus search failed",
+                arabic: "فشل البحث عن الميكروباص"
+            },
+            data: {
+                err
+            }
+        });
+    }
+})
