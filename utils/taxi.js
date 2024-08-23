@@ -1,5 +1,6 @@
 const { Client } = require("@googlemaps/google-maps-services-js");
 const axios = require('axios');
+const polyline = require('@mapbox/polyline');
 
 class GoogleMapsRouteSimulator {
     constructor(location, destination, apiKey) {
@@ -43,7 +44,7 @@ class GoogleMapsRouteSimulator {
 
             const result = response.data;
             if (result.status === 'OK') {
-                this.routePath = result.routes[0].overview_polyline.points;
+                this.routePath = polyline.decode(result.routes[0].overview_polyline.points);
                 await this.getDistrictsAlongRoute(this.routePath);
             } else {
                 console.log('Error calculating route:', result.status);
@@ -59,7 +60,7 @@ class GoogleMapsRouteSimulator {
                 return this.districtMapping[key];
             }
         }
-        return district;
+        return null;
     }
 
     async getDistrictFromLatLng(lat, lng) {
@@ -80,7 +81,12 @@ class GoogleMapsRouteSimulator {
                 );
 
                 if (districtComponent) {
-                    return this.normalizeDistrict(districtComponent.long_name);
+                    let dis = this.normalizeDistrict(districtComponent.long_name);
+                    if (dis) {
+                        return dis;
+                    } else {
+                        return 'Unknown District';
+                    }
                 } else {
                     return 'Unknown District';
                 }
@@ -96,9 +102,9 @@ class GoogleMapsRouteSimulator {
     async getDistrictsAlongRoute(route) {
         const districts = new Set();
         for (let i = 0; i < route.length; i += Math.floor(route.length / 10)) {
-            let latLng = route[i];
-            const district = await this.getDistrictFromLatLng(latLng.lat, latLng.lng);
-            if (district && district !== 'Port Fouad City' && district !== 'بورسعيد' && district !== 'بور سعيد') {
+            let [lat, lng] = route[i];
+            const district = await this.getDistrictFromLatLng(lat, lng);
+            if (district && district !== 'Unknown District') {
                 districts.add(district);
             }
         }
@@ -117,8 +123,8 @@ class GoogleMapsRouteSimulator {
     }
 }
 
-const location = { lat: 31.2587584192, lng: 32.2931440543 };
-const destination = { lat: 31.2607126949, lng: 32.3071995724 };
+const location = { lat: 31.260435, lng: 32.310060};
+const destination = { lat: 31.269257, lng: 32.254662};
 const apiKey = 'AIzaSyDiMJ_mpywf-0DeJYRcWO8H4W3EA-59TUs';
 
 let test = new GoogleMapsRouteSimulator(location, destination, apiKey);
