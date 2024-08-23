@@ -15,5 +15,6 @@ router
     .delete(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.deleteJourney);
 
 router.route("/search-microbus").post(journeyControllers.searchMicrobus);
+router.route("/search-taxi").post(journeyControllers.searchTaxi);
 
 module.exports = router

@@ -2,11 +2,12 @@ const { Client } = require("@googlemaps/google-maps-services-js");
 const axios = require('axios');
 const polyline = require('@mapbox/polyline');
 
-class GoogleMapsRouteSimulator {
-    constructor(location, destination, apiKey) {
+
+class TaxiLine {
+    constructor(location, destination) {
         this.location = location;
         this.destination = destination;
-        this.apiKey = apiKey;
+        this.apiKey = process.env.GOOGLE_API_KEY;
         this.finalResult = {};
         this.districtMapping = {
             "El Sharq": "قسم الشروق",
@@ -21,6 +22,7 @@ class GoogleMapsRouteSimulator {
             "قسم العرب": "العرب"
         };
         this.client = new Client({});
+        console.log(this.apiKey);
     }
 
     async initialize(travelMode = 'DRIVING') {
@@ -101,7 +103,7 @@ class GoogleMapsRouteSimulator {
 
     async getDistrictsAlongRoute(route) {
         const districts = new Set();
-        for (let i = 0; i < route.length; i += Math.floor(route.length / 10)) {
+        for (let i = 0; i < route.length; i += Math.floor(route.length / 3)) {
             let [lat, lng] = route[i];
             const district = await this.getDistrictFromLatLng(lat, lng);
             if (district && district !== 'Unknown District') {
@@ -122,3 +124,5 @@ class GoogleMapsRouteSimulator {
         }
     }
 }
+
+module.exports = TaxiLine;
