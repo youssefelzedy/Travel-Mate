@@ -2,6 +2,7 @@ const express = require('express');
 const dbConnect = require('./dbConnect');
 const dotenv = require('dotenv');
 const path = require('path');
+const cors = require('cors');
 
 const cookieParser = require('cookie-parser');
 const errorControllers = require('./controllers/errorControllers');
@@ -17,6 +18,7 @@ const journeyRoutes = require('./routes/journeyRoutes');
 dbConnect();
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
 app.use(express.json());
 app.use(cookieParser());
