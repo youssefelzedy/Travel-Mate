@@ -122,12 +122,3 @@ class GoogleMapsRouteSimulator {
         }
     }
 }
-
-const location = { lat: 31.260435, lng: 32.310060};
-const destination = { lat: 31.269257, lng: 32.254662};
-const apiKey = 'AIzaSyDiMJ_mpywf-0DeJYRcWO8H4W3EA-59TUs';
-
-let test = new GoogleMapsRouteSimulator(location, destination, apiKey);
-test.initialize().then(() => {
-  console.log(test.finalResult);
-});
