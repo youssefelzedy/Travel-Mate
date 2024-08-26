@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0px;
+  padding: 0px;
+}
+
+.circle-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition-duration: 150ms;
+  animation-duration: 150ms;
+  cursor: pointer;
+  padding: 2;
+  border: 2px solid rgb(124 58 237);
+  border-radius: 100%;
+  background-color: rgb(91 33 182);
+}
+
+.circle-button:hover {
+  background-color: rgb(140, 68, 255);
+  border-color: rgb(140, 68, 255);
+  text-shadow: 0px 0px 10px rgba(255, 255, 255, 1);
+  box-shadow: 0px 0px 10px rgba(152, 87, 255, 0.3);
+}
+
+.button {
+  text-align: center;
+  padding: 0.625rem 1.25rem 0.625rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-size: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  transition-duration: 150ms;
+  animation-duration: 150ms;
+  cursor: pointer;
+  padding: 2;
+}
+
+.button-colored {
+  color: white;
+  border: 2px solid rgb(124 58 237);
+  background-color: rgb(91 33 182);
+}
+
+.button-colored:hover {
+  background-color: rgb(140, 68, 255);
+  border-color: rgb(140, 68, 255);
+  text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
+  box-shadow: 0px 0px 10px rgba(152, 87, 255, 0.2);
+}
+
+.button-white {
+  color: rgb(91 33 182);
+  background-color: rgb(233, 233, 233);
+}
+.button-white:hover {
+  color: rgb(140, 68, 255);
+  background-color: white;
+  text-shadow: 0px 0px 10px rgba(152, 87, 255, 0.2);
+  box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #bcb1cf;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  background-color: #524d5f;
+  border-radius: 1rem;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: rgb(140, 68, 255);
+  transition-duration: 150ms;
+  animation-duration: 150ms;
+}
+::-webkit-scrollbar-thumb:hover {
+  border-radius: 10px;
+  background-color: rgb(167, 113, 255);
+  transition-duration: 150ms;
+  animation-duration: 150ms;
+}
+.masonry {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  max-width: 90%;
+  margin: auto;
+}
+
+.masonry-item {
+  background-color: #4f09d8;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 18px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.masonry-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+}
