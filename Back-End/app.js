@@ -11,7 +11,7 @@ const rateLimit = require('express-rate-limit')
 
 const cookieParser = require('cookie-parser')
 const errorControllers = require('./controllers/errorControllers')
-const authControllers = require('./controllers/authControllers')
+const authControllers = require(`${__dirname}/controllers/authControllers`)
 
 dotenv.config()
 
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const userRoutes = require('./routes/userRoutes')
 const placeRoutes = require('./routes/placeRoutes')
-const journeyRoutes = require('./routes/journeyRoutes')
+const journeyRoutes = require(`${__dirname}/routes/journeyRoutes`)
 
 dbConnect()
 const app = express()
