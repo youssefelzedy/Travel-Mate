@@ -125,10 +125,8 @@ class BusLine {
       let count = 0;
   
       Object.entries(this.pointsLine).forEach(([name, point]) => {
-        console.log(name);
-        console.log(destination.name);
+
         const path = dijkstra(this.graph, name, destination.name);
-        console.log(path);
         point.nmStops = path.length - 1;
       });
     }

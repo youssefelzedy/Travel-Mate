@@ -22,7 +22,6 @@ class TaxiLine {
             "قسم العرب": "العرب"
         };
         this.client = new Client({});
-        console.log(this.apiKey);
     }
 
     async initialize(travelMode = 'DRIVING') {

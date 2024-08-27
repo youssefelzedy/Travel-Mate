@@ -80,11 +80,9 @@
             if (response.ok) {
                 const data = await response.json();
                 alert('Login successful!');
-                console.log(data);
-                console.log(data.data.user);
+
                 const id = data.data.user._id;
-                console.log(id);
-                console.log(data.token);
+
                 window.location.href = '/profile/' + id;
 
                 localStorage.setItem('token', data.token);

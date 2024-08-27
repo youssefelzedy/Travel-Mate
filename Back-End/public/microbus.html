@@ -162,7 +162,6 @@
             //directionsRenderer4.setMap(map);
             //directionsRenderer4.setPanel(document.getElementById('directions-panel-3'));
             const params = new URLSearchParams(window.location.search)
-            console.log(params.get('placelatitude'));
             // Example hardcoded locations
             const userLocation = { lat: params.get('userlatitude'), lng: params.get('userlongitude') }; 
             const disLocation = { lat: params.get('placelatitude'), lng: params.get('placelongitude') };

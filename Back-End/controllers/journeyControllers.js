@@ -102,8 +102,6 @@ exports.searchMicrobus = catchAsync(async (req, res, next) => {
         const location = { lat: location_lat, lng: location_lng };
         const destination = { lat: destination_lat, lng: destination_lng };
 
-        console.log(location);
-        console.log(destination);
     
         const coreMicrobus = new microbus(location, destination);
         coreMicrobus.initializeData().then(() => {
@@ -143,11 +141,8 @@ exports.searchTaxi = catchAsync(async (req, res, next) => {
         const location = { lat: location_lat, lng: location_lng };
         const destination = { lat: destination_lat, lng: destination_lng };
 
-        console.log(location);
-        console.log(destination);
     
         const coreTaxi = new taxi(location, destination);
-        console.log(1)
         coreTaxi.initialize().then(() => {
             res.status(200).json({
                 status: "success",

@@ -153,13 +153,11 @@
 
             // Store the selected options in local storage
             localStorage.setItem('selectedOptions', JSON.stringify(selectedOptions));
-            console.log('Selected places:', selectedOptions);
         
         }
 
         document.addEventListener('DOMContentLoaded', async function() {
             const userId = window.location.pathname.split('/')[2];
-            console.log(userId);
 
             try {
                 const userProfileResponse = await fetch(`/api/v1/users/${userId}`, {
@@ -175,7 +173,6 @@
                 }
 
                 const userData = await userProfileResponse.json();
-                console.log(userData);
 
                 document.getElementById('fullname').textContent = `Full Name: ${userData.data.user.fullname}`;
                 document.getElementById('email').textContent = `Email: ${userData.data.user.email}`;
@@ -195,7 +192,6 @@
                 }
 
                 const citiesData = await citiesResponse.json();
-                console.log(citiesData.data);
                 const citiesList = document.getElementById('cities-list');
                 citiesData.data.places.forEach(place => {
                     const listItem = document.createElement('li');
