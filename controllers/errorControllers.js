@@ -16,6 +16,12 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError({ english: 'Your token has expired! Please log in again.', arabic: 'انتهت صلاحية رمزك. يرجى تسجيل الدخول مرة اخرى!' }, 401);
 
+const handleValidationErrorDB = err => {
+  const errors = Object.values(err.errors).map(el => el.message);
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 
 const sendErrorProd = (err, req, res) => {
   // A) API
@@ -74,6 +80,7 @@ return res.status(400).json({ messages: errors[0].messages });
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
+    if (error.name === 'ValidationError') error = handleValidationErrorDB(error);
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
     sendErrorProd(error, req, res);
 };
