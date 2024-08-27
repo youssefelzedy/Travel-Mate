@@ -1,5 +1,5 @@
-const journeyControllers = require("../controllers/journeyControllers");
-const authControllers = require("../controllers/authControllers");
+const journeyControllers = require(`${__dirname}/../controllers/journeyControllers`);
+const authControllers = require(`${__dirname}/../controllers/authControllers`);
 const express = require("express");
 const router = express.Router();
 

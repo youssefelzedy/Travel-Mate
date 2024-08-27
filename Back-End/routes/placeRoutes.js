@@ -1,5 +1,5 @@
-const placeControllers = require("../controllers/placeControllers");
-const authControllers = require("../controllers/authControllers");
+const placeControllers = require(`${__dirname}/../controllers/placeControllers`);
+const authControllers = require(`${__dirname}/../controllers/authControllers`);
 const express = require("express");
 const router = express.Router();
 

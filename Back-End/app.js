@@ -10,7 +10,7 @@ const mongoSanitize = require('express-mongo-sanitize')
 const rateLimit = require('express-rate-limit')
 
 const cookieParser = require('cookie-parser')
-const errorControllers = require('./controllers/errorControllers')
+const errorControllers = require(`${__dirname}/controllers/errorControllers`)
 const authControllers = require(`${__dirname}/controllers/authControllers`)
 
 dotenv.config()

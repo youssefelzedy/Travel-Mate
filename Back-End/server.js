@@ -1,4 +1,4 @@
-const app = require('./app')
+const app = require(`${__dirname}/app`)
 const http = require('http')
 const PORT = process.env.PORT || 2030
 const server = http.createServer(app)

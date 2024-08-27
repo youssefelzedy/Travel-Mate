@@ -1,10 +1,10 @@
-const Journey = require("../models/Journey");
-const User = require("../models/User");
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
+const Journey = require(`${__dirname}/../models/Journey`);
+const User = require(`${__dirname}/../models/User`);
+const catchAsync = require(`${__dirname}/../utils/catchAsync`);
+const AppError = require(`${__dirname}/../utils/appError`);
 const e = require("express");
-const microbus = require("../utils/microbus");
-const taxi = require("../utils/taxi");
+const microbus = require(`${__dirname}/../utils/microbus`);
+const taxi = require(`${__dirname}/../utils/taxi`);
 
 
 exports.getAllJourneys = catchAsync(async (req, res, next) => {

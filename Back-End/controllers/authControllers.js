@@ -1,11 +1,11 @@
 const crypto = require('crypto')
 const { promisify } = require('util')
 const jwt = require('jsonwebtoken')
-const User = require('../models/User')
-const catchAsync = require('../utils/catchAsync')
-const AppError = require('../utils/appError')
-const sendVerificationEmail = require('../utils/mailer')
-const sendPasswordResetEmail = require('../utils/sendResetPassword')
+const User = require(`${__dirname}/../models/User`)
+const catchAsync = require(`${__dirname}/../utils/catchAsync`)
+const AppError = require(`${__dirname}/../utils/appError`)
+const sendVerificationEmail = require(`${__dirname}/../utils/mailer`)
+const sendPasswordResetEmail = require(`${__dirname}/../utils/sendResetPassword`)
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN

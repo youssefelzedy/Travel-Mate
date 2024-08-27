@@ -1,8 +1,8 @@
 const express = require("express");
-const Place = require("../models/Place");
-const catchAsync = require("../utils/catchAsync");
-const cities = require("../utils/cities");
-const getPlacesInCity = require("../utils/getPlacesInCity");
+const Place = require(`${__dirname}/../models/Place`);
+const catchAsync = require(`${__dirname}/../utils/catchAsync`);
+const cities = require(`${__dirname}/../utils/cities`);
+const getPlacesInCity = require(`${__dirname}/../utils/getPlacesInCity`);
 
 
 exports.createPlace = catchAsync(async (req, res, next) => {

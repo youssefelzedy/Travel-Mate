@@ -1,5 +1,5 @@
-const userControllers = require('../controllers/userControllers')
-const authController = require('../controllers/authControllers')
+const userControllers = require(`${__dirname}/../controllers/userControllers`)
+const authController = require(`${__dirname}/../controllers/authControllers`)
 const express = require('express')
 const router = express.Router()
 
