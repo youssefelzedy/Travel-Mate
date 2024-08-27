@@ -11,7 +11,6 @@ const rateLimit = require('express-rate-limit')
 
 const cookieParser = require('cookie-parser')
 const errorControllers = require(`${__dirname}/controllers/errorControllers`)
-const authControllers = require(`${__dirname}/controllers/authControllers`)
 
 dotenv.config()
 
@@ -47,60 +46,6 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/places', placeRoutes)
 app.use('/api/v1/journeys', journeyRoutes)
 
-// html routes
-// for users
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'landing.html'))
-})
-
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
-})
-
-app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'signup.html'))
-})
-app.get('/reset-password/:token', authControllers.protect, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'resetPassword.html'))
-})
-
-app.get('/forgotPassword', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'forgotPassword.html'))
-})
-
-app.get('/updatePassword', authControllers.protect, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'updatePassword.html'))
-})
-
-// for profile
-
-app.get('/profile/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'profile.html'))
-})
-
-app.get('/profile/:id/newjourney', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'newJourney.html'))
-})
-
-// for places
-
-app.get('/city/:city', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'city.html'))
-})
-
-app.get('/:city/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'placeDetails.html'))
-})
-
-app.get('/microbus/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'microbus.html'))
-})
-
-// for 404 page
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', '404.html'))
-})
 
 app.use(errorControllers)
 module.exports = app
