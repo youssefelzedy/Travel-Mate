@@ -6,13 +6,13 @@ const router = express.Router();
 
 router
     .route("/")
-    .get(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.getAllJourneys)
-    .post(authControllers.protect,journeyControllers.createJourney);
+    .get(authControllers.restrictTo("admin"),journeyControllers.getAllJourneys)
+    .post(journeyControllers.createJourney);
 router  
     .route("/:id")
-    .get(authControllers.protect,journeyControllers.getJourney)
-    .patch(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.updateJourney)
-    .delete(authControllers.protect,authControllers.restrictTo("admin"),journeyControllers.deleteJourney);
+    .get(journeyControllers.getJourney)
+    .patch(authControllers.restrictTo("admin"),journeyControllers.updateJourney)
+    .delete(authControllers.restrictTo("admin"),journeyControllers.deleteJourney);
 
 router.route("/search-microbus").post(journeyControllers.searchMicrobus);
 router.route("/search-taxi").post(journeyControllers.searchTaxi);

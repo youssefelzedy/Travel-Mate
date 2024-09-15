@@ -6,12 +6,12 @@ const router = express.Router();
 
 router
     .route("/")
-    .get(authControllers.protect,placeControllers.getAllPlaces)
-    .post(authControllers.protect,placeControllers.createPlace);
+    .get(placeControllers.getAllPlaces)
+    .post(placeControllers.createPlace);
 router  
     .route("/:city")
-    .get(authControllers.protect,placeControllers.getPlace)
-    .patch(authControllers.protect,authControllers.restrictTo("admin"),placeControllers.updatePlace)
-    .delete(authControllers.protect,authControllers.restrictTo("admin"),placeControllers.deletePlace);
+    .get(placeControllers.getPlace)
+    .patch(placeControllers.updatePlace)
+    .delete(placeControllers.deletePlace);
 
 module.exports = router
