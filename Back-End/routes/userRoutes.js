@@ -1,34 +1,34 @@
-const userControllers = require(`${__dirname}/../controllers/userControllers`)
-const authController = require(`${__dirname}/../controllers/authControllers`)
-const express = require('express')
-const router = express.Router()
+const userControllers = require(`${__dirname}/../controllers/userControllers`);
+const authController = require(`${__dirname}/../controllers/authControllers`);
+const express = require("express");
+const router = express.Router();
 
-router.route('/signup').post(authController.signup)
-router.route('/login').post(authController.login)
-router.get('/logout', authController.logout)
-router.get('/verify-email', authController.verifyEmail)
-router.post('/forgot-password', authController.forgotPassword)
-router.patch('/reset-password', authController.resetPassword)
+router.route("/signup").post(authController.signup);
+router.route("/login").post(authController.login);
+router.get("/logout", authController.logout);
+router.get("/verify-email", authController.verifyEmail);
+router.post("/forgot-password", authController.forgotPassword);
+router.patch("/reset-password", authController.resetPassword);
 router.patch(
-  '/update-password',
+  "/update-password",
   authController.protect,
   authController.updatePassword
-)
+);
 
-router.route('/').get(authController.protect, userControllers.getAllUsers)
+router.route("/").get(authController.protect, userControllers.getAllUsers);
 
 router
-  .route('/:id')
+  .route("/:id")
   .get(authController.protect, userControllers.getUser)
   .patch(
     authController.protect,
-    authController.restrictTo('admin'),
+    authController.restrictTo("admin"),
     userControllers.updateUser
   )
   .delete(
     authController.protect,
-    authController.restrictTo('admin'),
+    authController.restrictTo("admin"),
     userControllers.deleteUser
-  )
+  );
 
-module.exports = router
+module.exports = router;
