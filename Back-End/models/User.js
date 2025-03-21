@@ -90,6 +90,7 @@ UserSchema.pre("save", async function (next) {
   next();
 });
 
+// Pre-save hook to update passwordChangedAt field
 UserSchema.pre("save", function (next) {
   console.log(this.passwordChangedAt);
   if (!this.isModified("password") || this.isNew) return next();
@@ -98,7 +99,7 @@ UserSchema.pre("save", function (next) {
   next();
 });
 
-//method to encrypt password
+// Method to encrypt password
 UserSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
@@ -106,6 +107,7 @@ UserSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
+//
 UserSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
 

@@ -19,7 +19,6 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const userRoutes = require("./routes/userRoutes");
-const placeRoutes = require("./routes/placeRoutes");
 const journeyRoutes = require(`${__dirname}/routes/journeyRoutes`);
 
 dbConnect();
@@ -43,7 +42,6 @@ app.use(cookieParser());
 
 // API Routes
 app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/places", placeRoutes);
 app.use("/api/v1/journeys", journeyRoutes);
 
 app.use(errorControllers);

@@ -3,7 +3,12 @@ const catchAsync = require(`${__dirname}/../utils/catchAsync`);
 const AppError = require(`${__dirname}/../utils/appError`);
 
 exports.createUser = catchAsync(async (req, res, next) => {
-  const user = await User.create(req.body);
+  const user = await User.create({
+    fullname: req.body.fullname,
+    email: req.body.email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+  });
   res.status(201).json({
     status: "success",
     massage: {
@@ -46,10 +51,19 @@ exports.getUser = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const user = await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      fullname: req.body.fullname,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
   res.status(200).json({
     status: "success",
     massage: {

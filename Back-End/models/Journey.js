@@ -29,6 +29,13 @@ const JourneySchema = new Schema(
         true,
         { english: "Please add a transport", arabic: "يرجى إضافة وسيلة نقل" },
       ],
+      enum: {
+        values: ["microbus", "taxi"],
+        message: {
+          english: "Please add a valid transport",
+          arabic: "يرجى إضافة وسيلة نقل صالحة",
+        },
+      },
     },
     date: {
       type: Date,

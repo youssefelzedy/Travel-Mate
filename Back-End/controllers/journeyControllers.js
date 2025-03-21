@@ -3,7 +3,7 @@ const User = require(`${__dirname}/../models/User`);
 const catchAsync = require(`${__dirname}/../utils/catchAsync`);
 const AppError = require(`${__dirname}/../utils/appError`);
 const e = require("express");
-const microbus = require(`${__dirname}/../utils/microbus`);
+const microbus = require(`${__dirname}/../utils/microBus`);
 const taxi = require(`${__dirname}/../utils/taxi`);
 
 exports.getAllJourneys = catchAsync(async (req, res, next) => {
@@ -36,15 +36,31 @@ exports.getJourney = catchAsync(async (req, res, next) => {
 });
 
 exports.createJourney = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  // chcek if user has already exist or not
+  if (!user) {
+    return next(
+      new AppError(
+        "You have already not created, you can't create any journeys",
+        400
+      )
+    );
+  }
+
+  // create the journey
   const journey = await Journey.create({
-    city: req.body.city,
-    transport: req.body.transport,
     location: req.body.location,
+    destination: req.body.destination,
+    user: user._id,
+    transport: req.body.transport,
+    date: req.body.date,
   });
 
-  const user = await User.findById(req.user.id);
+  // push the journey to the user
   user.journeys.push(journey._id);
   await user.save();
+
 
   res.status(201).json({
     status: "success",
@@ -77,6 +93,19 @@ exports.updateJourney = catchAsync(async (req, res, next) => {
 
 exports.deleteJourney = catchAsync(async (req, res, next) => {
   await Journey.findByIdAndDelete(req.params.id);
+
+  // check if the journey is exist or not
+  if (!journey) {
+    return next(new AppError("No journey found with that ID",
+      404));
+  }
+
+  // delete the journey from the user
+  const user = await User.findById(req.user.id);
+  user.journeys.splice(user.journeys.indexOf(req.params.id), 1);
+  await user.save();
+
+
   res.status(204).json({
     status: "success",
     massage: {

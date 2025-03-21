@@ -4,7 +4,8 @@
   "description": "e-commerce for sports",
   "main": "server.js",
   "scripts": {
-    "publish": "nodemon server.js"
+    "publish": "nodemon server.js",
+    "start": "nodemon server.js"
   },
   "author": "youssef salah",
   "license": "ISC",
