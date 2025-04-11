@@ -36,49 +36,85 @@ exports.getJourney = catchAsync(async (req, res, next) => {
 });
 
 exports.createJourney = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const location = {
+    lat: req.body.location?.lat,
+    lng: req.body.location?.lng,
+  };
+  const destination = {
+    lat: req.body.destination?.lat,
+    lng: req.body.destination?.lng,
+  };
 
-  // chcek if user has already exist or not
-  if (!user) {
+  const transport = res.locals.transport || "microbus";
+  const date = Date.now();
+
+  console.log("Creating journey with:", { location, destination, transport });
+
+  const journey = await Journey.create({
+    location,
+    destination,
+    transport,
+    date,
+  });
+
+  if (!journey) {
     return next(
       new AppError(
-        "You have already not created, you can't create any journeys",
-        400
+        {
+          english: "Unable to create journey",
+          arabic: "فشل انشاء المسار",
+        },
+        404
       )
     );
   }
 
-  // create the journey
-  const journey = await Journey.create({
-    location: req.body.location,
-    destination: req.body.destination,
-    user: user._id,
-    transport: req.body.transport,
-    date: req.body.date,
-  });
-
-  // push the journey to the user
-  user.journeys.push(journey._id);
-  await user.save();
-
-
   res.status(201).json({
     status: "success",
-    massage: {
+    message: {
       english: "Journey created successfully",
       arabic: "تم انشاء المسار بنجاح",
     },
     data: {
       journey,
+      pathResult: res.locals.pathResult,
     },
   });
 });
 
 exports.updateJourney = catchAsync(async (req, res, next) => {
-  const journey = await Journey.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  const location = {
+    lat: req.body.location?.lat,
+    lng: req.body.location?.lng,
+  };
+  const destination = {
+    lat: req.body.destination?.lat,
+    lng: req.body.destination?.lng,
+  };
+
+  const journey = await Journey.findByIdAndUpdate(
+    req.params.id,
+    {
+      location,
+      destination,
+      transport: req.body.transport,
+      date: Date.now(),
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  // check if the journey is exist or not
+  if (!journey) {
+    return next(
+      new AppError(
+        "No journey found with that ID", // Pass a string directly
+        404
+      )
+    );
+  }
   res.status(200).json({
     status: "success",
     massage: {
@@ -96,15 +132,13 @@ exports.deleteJourney = catchAsync(async (req, res, next) => {
 
   // check if the journey is exist or not
   if (!journey) {
-    return next(new AppError("No journey found with that ID",
-      404));
+    return next(new AppError("No journey found with that ID", 404));
   }
 
   // delete the journey from the user
   const user = await User.findById(req.user.id);
   user.journeys.splice(user.journeys.indexOf(req.params.id), 1);
   await user.save();
-
 
   res.status(204).json({
     status: "success",
@@ -117,40 +151,21 @@ exports.deleteJourney = catchAsync(async (req, res, next) => {
 });
 
 exports.searchMicrobus = catchAsync(async (req, res, next) => {
-  try {
-    const location_lat = req.body.location.lat;
-    const location_lng = req.body.location.lng;
-    const destination_lat = req.body.destination.lat;
-    const destination_lng = req.body.destination.lng;
+  const location_lat = req.body.location.lat;
+  const location_lng = req.body.location.lng;
+  const destination_lat = req.body.destination.lat;
+  const destination_lng = req.body.destination.lng;
 
-    const location = { lat: location_lat, lng: location_lng };
-    const destination = { lat: destination_lat, lng: destination_lng };
+  const location = { lat: location_lat, lng: location_lng };
+  const destination = { lat: destination_lat, lng: destination_lng };
 
-    const coreMicrobus = new microbus(location, destination);
-    coreMicrobus.initializeData().then(() => {
-      res.status(200).json({
-        status: "success",
-        massage: {
-          english: "Microbus search completed successfully",
-          arabic: "تم البحث عن الميكروباص بنجاح",
-        },
-        data: {
-          result: coreMicrobus.finalResult,
-        },
-      });
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "fail",
-      massage: {
-        english: "Microbus search failed",
-        arabic: "فشل البحث عن الميكروباص",
-      },
-      data: {
-        err,
-      },
-    });
-  }
+  const coreMicrobus = new microbus(location, destination);
+
+  await coreMicrobus.initializeData(); // waits properly4
+  res.locals.pathResult = coreMicrobus.finalResult;
+  res.locals.transport = "microbus";
+
+  next();
 });
 
 exports.searchTaxi = catchAsync(async (req, res, next) => {

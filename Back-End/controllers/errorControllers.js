@@ -54,6 +54,7 @@ const sendErrorProd = (err, req, res) => {
       message: {
         english: "Something went wrong!",
         arabic: "حدث خطأ ما",
+        msg: err.message,
       },
     });
   }

@@ -5,18 +5,20 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(authControllers.restrictTo("admin"), journeyControllers.getAllJourneys)
-  .post(journeyControllers.createJourney);
+  .get(journeyControllers.getAllJourneys);
 router
   .route("/:id")
   .get(journeyControllers.getJourney)
-  .patch(authControllers.restrictTo("admin"), journeyControllers.updateJourney)
+  .patch(journeyControllers.updateJourney)
   .delete(
     authControllers.restrictTo("admin"),
     journeyControllers.deleteJourney
   );
 
-router.route("/search-microbus").post(journeyControllers.searchMicrobus);
+router
+  .route("/search-microbus")
+  .post(journeyControllers.searchMicrobus, journeyControllers.createJourney);
+
 router.route("/search-taxi").post(journeyControllers.searchTaxi);
 
 module.exports = router;
