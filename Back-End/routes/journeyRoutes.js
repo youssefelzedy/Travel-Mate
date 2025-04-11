@@ -11,7 +11,6 @@ router
   .get(journeyControllers.getJourney)
   .patch(journeyControllers.updateJourney)
   .delete(
-    authControllers.restrictTo("admin"),
     journeyControllers.deleteJourney
   );
 
