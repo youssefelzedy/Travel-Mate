@@ -5,7 +5,6 @@ import {
     useMap,
     Marker,
     Popup,
-    Tooltip,
 } from "react-leaflet";
 
 import L from "leaflet";
