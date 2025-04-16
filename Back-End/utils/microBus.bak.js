@@ -29,7 +29,7 @@ class PriorityQueue {
   }
 }
 
-function dijkstra(graph, startNode, endNode) {
+function dijkstra(grph, startNode, endNode) {
   const distances = {};
   const pq = new PriorityQueue();
   const previous = {};
