@@ -1,11 +1,9 @@
 import MyMap from "./Map";
-// import RouteExporter from "./RouteExporter";
 
 function AppLayout() {
     return (
-        <div className="flex  h-screen">
+        <div>
             <MyMap />
-            {/* <RouteExporter /> */}
         </div>
     );
 }

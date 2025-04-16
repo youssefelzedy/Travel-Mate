@@ -10,7 +10,8 @@ import {
 import L from "leaflet";
 import "leaflet-routing-machine";
 import { useEffect } from "react";
-import { data } from "./data";
+import { allPathCoordinates, data } from "./data";
+import FitBounds from "./FitBounds";
 
 const RoutingControl = ({ path }) => {
     const map = useMap();
@@ -25,9 +26,10 @@ const RoutingControl = ({ path }) => {
             lineOptions: {
                 styles: [{ color: "red", opacity: 0.8, weight: 5 }],
             },
-            // createMarker: () => null,
+            createMarker: () => null,
             addWaypoints: false,
             show: false,
+            fitSelectedRoutes: false,
             draggableWaypoints: false,
         }).addTo(map);
 
@@ -44,6 +46,7 @@ const MyMap = () => {
             zoom={8}
             style={{ height: "100vh", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <FitBounds coordinates={allPathCoordinates} />
             <Marker
                 key={data.journey.location}
                 position={data.journey.location}>
