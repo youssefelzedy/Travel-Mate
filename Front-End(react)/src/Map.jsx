@@ -12,9 +12,11 @@ import {
 import L from "leaflet";
 import "leaflet-routing-machine";
 import { useEffect, useRef, useState } from "react";
+
 import { allPathCoordinates, data } from "./data";
 import FitBounds from "./FitBounds";
 import RedIcon from "./ui/RedIcon";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 const ClickHandler = ({ setLocation, setDestination, location }) => {
     useMapEvent("click", e => {
@@ -68,6 +70,23 @@ const MyMap = () => {
             setter({ lat, lng });
         }
     };
+    const handleGetCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const { latitude, longitude } = position.coords;
+                setLocation([latitude, longitude]);
+            },
+            () => {
+                alert("Unable to retrieve your location");
+            }
+        );
+    };
+
     return (
         <MapContainer
             center={data.journey.location}
@@ -77,7 +96,11 @@ const MyMap = () => {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <FitBounds coordinates={allPathCoordinates} />
             <ZoomControl position="topright" />
-
+            <button
+                onClick={handleGetCurrentLocation}
+                className="current-location-button">
+                <FaMapMarkerAlt size={20} />
+            </button>
             {data.pathResult.totalPath.map((path, index) => {
                 if (path.type === "walk") {
                     return (

@@ -32,3 +32,22 @@ body::-webkit-scrollbar {
     justify-content: center;
     align-items: center;
 }
+
+.current-location-button {
+    position: absolute;
+    bottom: 50px;
+    right: 20px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
