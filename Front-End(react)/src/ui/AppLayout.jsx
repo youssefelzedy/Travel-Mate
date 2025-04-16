@@ -1,5 +1,5 @@
-import MyMap from "./Map";
-import Sidebar from "./Sidebar";
+import MyMap from "../components/Map";
+import Sidebar from "../components/Sidebar";
 
 function AppLayout() {
     return (
