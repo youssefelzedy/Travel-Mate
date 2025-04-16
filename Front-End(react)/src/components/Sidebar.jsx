@@ -13,7 +13,7 @@ const FontAwesomeCDN = () => (
     />
 );
 
-const Sidebar = ({ selectedRoute, setSelectedRoute }) => {
+const Sidebar = () => {
     const { journey, pathResult } = data;
     const [isVisible, setIsVisible] = useState(false);
 
@@ -129,14 +129,7 @@ const Sidebar = ({ selectedRoute, setSelectedRoute }) => {
                             <h3>Route Directions</h3>
                             <div className="timeline">
                                 {pathResult.totalPath.map((segment, index) => (
-                                    <div
-                                        key={index}
-                                        className={`timeline-item ${
-                                            selectedRoute === index
-                                                ? "selected"
-                                                : ""
-                                        }`}
-                                        onClick={() => setSelectedRoute(index)}>
+                                    <div key={index} className="timeline-item">
                                         <div className="timeline-marker">
                                             <div className="marker-circle">
                                                 <span className="transport-icon">
