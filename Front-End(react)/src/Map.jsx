@@ -5,13 +5,30 @@ import {
     useMap,
     Marker,
     Popup,
+    useMapEvent,
+    ZoomControl,
 } from "react-leaflet";
 
 import L from "leaflet";
 import "leaflet-routing-machine";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { allPathCoordinates, data } from "./data";
 import FitBounds from "./FitBounds";
+import RedIcon from "./ui/RedIcon";
+
+const ClickHandler = ({ setLocation, setDestination, location }) => {
+    useMapEvent("click", e => {
+        const { lat, lng } = e.latlng;
+
+        if (!location) {
+            setLocation({ lat, lng });
+        } else {
+            setDestination({ lat, lng });
+        }
+    });
+
+    return null;
+};
 
 const RoutingControl = ({ path }) => {
     const map = useMap();
@@ -40,20 +57,27 @@ const RoutingControl = ({ path }) => {
 };
 
 const MyMap = () => {
+    const [location, setLocation] = useState(null);
+    const [destination, setDestination] = useState(null);
+    const locationRef = useRef(null);
+    const destinationRef = useRef(null);
+
+    const updateMarkerPosition = (markerRef, setter) => {
+        if (markerRef.current) {
+            const { lat, lng } = markerRef.current.getLatLng();
+            setter({ lat, lng });
+        }
+    };
     return (
         <MapContainer
             center={data.journey.location}
             zoom={8}
-            style={{ height: "100vh", width: "100%" }}>
+            style={{ height: "100vh", width: "100%", position: "absolute" }}
+            zoomControl={false}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <FitBounds coordinates={allPathCoordinates} />
-            <Marker
-                key={data.journey.location}
-                position={data.journey.location}>
-                <Popup>
-                    <h2>Walk Start</h2>
-                </Popup>
-            </Marker>
+            <ZoomControl position="topright" />
+
             {data.pathResult.totalPath.map((path, index) => {
                 if (path.type === "walk") {
                     return (
@@ -73,13 +97,42 @@ const MyMap = () => {
                     );
                 }
             })}
-            <Marker
-                key={data.journey.destination}
-                position={data.journey.destination}>
-                <Popup>
-                    <h2>destination</h2>
-                </Popup>
-            </Marker>
+
+            <ClickHandler
+                setLocation={setLocation}
+                setDestination={setDestination}
+                location={location}
+            />
+
+            {location && (
+                <Marker
+                    position={[location.lat, location.lng]}
+                    draggable={true}
+                    eventHandlers={{
+                        dragend: () =>
+                            updateMarkerPosition(locationRef, setLocation),
+                    }}
+                    ref={locationRef}>
+                    <Popup>Drag to set Location</Popup>
+                </Marker>
+            )}
+
+            {destination && (
+                <Marker
+                    position={[destination.lat, destination.lng]}
+                    draggable={true}
+                    icon={RedIcon}
+                    eventHandlers={{
+                        dragend: () =>
+                            updateMarkerPosition(
+                                destinationRef,
+                                setDestination
+                            ),
+                    }}
+                    ref={destinationRef}>
+                    <Popup>Drag to set Destination</Popup>
+                </Marker>
+            )}
         </MapContainer>
     );
 };
