@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { data } from "./data";
 
+// Load FontAwesome for icons
+const FontAwesomeCDN = () => (
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossOrigin="anonymous"
+    referrerPolicy="no-referrer"
+  />
+);
+
 const Sidebar = () => {
   const { journey, pathResult } = data;
   const [isVisible, setIsVisible] = useState(true);
@@ -19,90 +30,139 @@ const Sidebar = () => {
   const getTransportIcon = (type) => {
     switch (type) {
       case "walk":
-        return "🚶";
+        return <i className="fas fa-walking"></i>;
       case "bus":
-        return "🚌";
+        return <i className="fas fa-bus"></i>;
       case "train":
-        return "🚆";
+        return <i className="fas fa-train"></i>;
       case "car":
-        return "🚗";
+        return <i className="fas fa-car"></i>;
       default:
-        return "🚩";
+        return <i className="fas fa-flag"></i>;
+    }
+  };
+
+  // Function to render the appropriate line style based on the current segment's type
+  const renderTimelineLine = (currentType) => {
+    if (currentType === "walk") {
+      return (
+        <div className="timeline-dashed">
+          {[...Array(5)].map((_, dotIndex) => (
+            <span key={dotIndex} className="dash-dot"></span>
+          ))}
+        </div>
+      );
+    } else if (currentType === "bus") {
+      return <div className="timeline-line bold"></div>;
+    } else {
+      return <div className="timeline-line"></div>;
     }
   };
 
   return (
     <div className="sidebar-container">
-      <button
-        className={`toggle-button ${isVisible ? "visible" : "hidden"}`}
-        onClick={toggleSidebar}
-      >
-        {isVisible ? "◄" : "►"}
-      </button>
+      <FontAwesomeCDN />
+      {!isVisible && (
+        <button className="show-button" onClick={toggleSidebar}>
+          <i className="fas fa-chevron-right"></i>
+        </button>
+      )}
       {isVisible && (
         <div className="sidebar">
           <div className="sidebar-header">
             <h2>Travel Details</h2>
+            <button className="toggle-button" onClick={toggleSidebar}>
+              <i className="fas fa-chevron-left"></i>
+            </button>
           </div>
 
           <div className="journey-info">
             <div className="info-section">
               <h3>Journey Overview</h3>
-              <div className="info-item">
-                <span className="label">Start Location:</span>
-                <span className="value">{formatCoords(journey.location)}</span>
-              </div>
-              <div className="info-item">
-                <span className="label">Destination:</span>
-                <span className="value">
-                  {formatCoords(journey.destination)}
-                </span>
-              </div>
-              <div className="info-item">
-                <span className="label">Total Fee:</span>
-                <span className="value">${pathResult.totalFee.toFixed(2)}</span>
+              <div className="overview-card">
+                <div className="info-item">
+                  <span className="icon">
+                    <i className="fas fa-map-marker-alt"></i>
+                  </span>
+                  <div className="info-content">
+                    <span className="label">Start Location:</span>
+                    <span className="value">
+                      {formatCoords(journey.location)}
+                    </span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <span className="icon">
+                    <i className="fas fa-flag-checkered"></i>
+                  </span>
+                  <div className="info-content">
+                    <span className="label">Destination:</span>
+                    <span className="value">
+                      {formatCoords(journey.destination)}
+                    </span>
+                  </div>
+                </div>
+                <div className="info-item">
+                  <span className="icon">
+                    <i className="fas fa-dollar-sign"></i>
+                  </span>
+                  <div className="info-content">
+                    <span className="label">Total Fee:</span>
+                    <span className="value">
+                      ${pathResult.totalFee.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="info-section">
               <h3>Route Directions</h3>
-              <div className="directions-list">
+              <div className="timeline">
                 {pathResult.totalPath.map((segment, index) => (
-                  <div key={index} className="direction-segment">
-                    <div className="segment-header">
-                      <span className="transport-icon">
-                        {getTransportIcon(segment.type)}
-                      </span>
-                      <span className="transport-type">
-                        {segment.type.charAt(0).toUpperCase() +
-                          segment.type.slice(1)}
-                      </span>
+                  <div key={index} className="timeline-item">
+                    <div className="timeline-marker">
+                      <div className="marker-circle">
+                        <span className="transport-icon">
+                          {getTransportIcon(segment.type)}
+                        </span>
+                      </div>
+                      {index < pathResult.totalPath.length - 1 &&
+                        renderTimelineLine(segment.type)}
                     </div>
-                    <div className="segment-details">
-                      <div className="segment-point">
-                        <span className="point-label">From:</span>
-                        <span className="point-value">
-                          {segment.coordinates[0][0].toFixed(6)},{" "}
-                          {segment.coordinates[0][1].toFixed(6)}
+                    <div className="timeline-content">
+                      <div className="segment-header">
+                        <span className="transport-type">
+                          {segment.type.charAt(0).toUpperCase() +
+                            segment.type.slice(1)}
                         </span>
                       </div>
-                      <div className="segment-point">
-                        <span className="point-label">To:</span>
-                        <span className="point-value">
-                          {segment.coordinates[
-                            segment.coordinates.length - 1
-                          ][0].toFixed(6)}
-                          ,
-                          {segment.coordinates[
-                            segment.coordinates.length - 1
-                          ][1].toFixed(6)}
-                        </span>
-                      </div>
-                      <div className="segment-point">
-                        <span className="point-label">Points:</span>
-                        <span className="point-value">
-                          {segment.coordinates.length}
-                        </span>
+                      <div className="segment-details">
+                        <div className="segment-point">
+                          <span className="point-label">From:</span>
+                          <span className="point-value">
+                            {segment.coordinates[0][0].toFixed(6)},{" "}
+                            {segment.coordinates[0][1].toFixed(6)}
+                          </span>
+                        </div>
+                        <div className="segment-point">
+                          <span className="point-label">To:</span>
+                          <span className="point-value">
+                            {segment.coordinates[
+                              segment.coordinates.length - 1
+                            ][0].toFixed(6)}
+                            ,
+                            {segment.coordinates[
+                              segment.coordinates.length - 1
+                            ][1].toFixed(6)}
+                          </span>
+                        </div>
+                        <div className="segment-point">
+                          <span className="point-label">Points:</span>
+                          <span className="point-value">
+                            {segment.coordinates.length}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -116,135 +176,577 @@ const Sidebar = () => {
       <style jsx="true">{`
         .sidebar-container {
           position: relative;
+          width: 100%;
+          max-width: 100%;
         }
 
         .sidebar {
-          width: 350px;
+          width: 320px;
+          max-width: 400px;
           height: 100vh;
-          background-color: white;
-          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+          min-height: 500px;
+          background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+          border-right: 1px solid #e2e8f0;
           overflow-y: auto;
-          padding: 20px;
+          padding: 24px;
           position: absolute;
           top: 0;
           left: 0;
           z-index: 1000;
+          font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+            Roboto, sans-serif;
+          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
         }
 
-        .toggle-button {
+        .show-button {
           position: absolute;
           top: 20px;
+          left: 0;
           z-index: 1100;
-          background-color: #007bff;
+          background: linear-gradient(135deg, #3b82f6, #60a5fa);
           color: white;
           border: none;
-          padding: 8px;
-          border-radius: 0 4px 4px 0;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
           cursor: pointer;
           font-size: 16px;
           line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease, background 0.3s ease, left 0.3s ease;
         }
 
-        .toggle-button.visible {
-          left: 350px;
+        .show-button:hover {
+          background: linear-gradient(135deg, #2563eb, #4b9efa);
+          transform: scale(1.1) rotate(90deg);
         }
 
-        .toggle-button.hidden {
-          left: 0;
+        .toggle-button {
+          background: linear-gradient(135deg, #3b82f6, #60a5fa);
+          color: white;
+          border: none;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 14px;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease, background 0.3s ease;
         }
 
         .toggle-button:hover {
-          background-color: #0056b3;
+          background: linear-gradient(135deg, #2563eb, #4b9efa);
+          transform: scale(1.1) rotate(-90deg);
         }
 
         .sidebar-header {
-          border-bottom: 1px solid #eee;
-          padding-bottom: 15px;
-          margin-bottom: 20px;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          padding-bottom: 16px;
+          margin-bottom: 24px;
         }
 
         .sidebar-header h2 {
           margin: 0;
-          color: #333;
+          font-size: 26px;
+          font-weight: 600;
+          color: #1e293b;
+          letter-spacing: 0.3px;
+          line-height: 1.2;
         }
 
         .info-section {
-          margin-bottom: 25px;
+          margin-bottom: 32px;
+          position: relative;
         }
 
         .info-section h3 {
-          margin-top: 0;
-          margin-bottom: 15px;
-          color: #555;
+          margin: 0 0 16px 0;
           font-size: 18px;
+          font-weight: 500;
+          color: #1e293b;
+          letter-spacing: 0.2px;
+          line-height: 1.3;
+          position: relative;
+          display: inline-block;
+        }
+
+        .info-section h3::after {
+          content: "";
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 40px;
+          height: 2px;
+          background: linear-gradient(90deg, #3b82f6, #60a5fa);
+          border-radius: 2px;
+        }
+
+        .overview-card {
+          background-color: #ffffff;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border: 1px solid #e2e8f0;
+          opacity: 0;
+          animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          to {
+            opacity: 1;
+          }
         }
 
         .info-item {
           display: flex;
-          justify-content: space-between;
-          margin-bottom: 10px;
+          align-items: center;
+          padding: 14px 0;
+          border-bottom: 1px solid #e2e8f0;
+          transition: background-color 0.3s ease, transform 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .info-item:last-child {
+          border-bottom: none;
+        }
+
+        .info-item:hover {
+          background-color: #f8fafc;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        .icon {
+          font-size: 20px;
+          margin-right: 16px;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #3b82f6, #60a5fa);
+          color: white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease;
+        }
+
+        .info-item:hover .icon {
+          transform: scale(1.1);
+        }
+
+        .info-content {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
         }
 
         .label {
-          font-weight: 600;
-          color: #666;
+          font-weight: 400;
+          color: #64748b;
+          font-size: 14px;
+          letter-spacing: 0.1px;
+          line-height: 1.4;
         }
 
         .value {
-          color: #333;
+          color: #1e293b;
+          font-weight: 500;
+          font-size: 16px;
+          letter-spacing: 0.1px;
+          line-height: 1.4;
         }
 
-        .directions-list {
+        /* Timeline Styles */
+        .timeline {
+          position: relative;
+          padding-left: 20px;
+        }
+
+        .timeline-item {
+          display: flex;
+          position: relative;
+          margin-bottom: 24px;
+          opacity: 0;
+          transform: translateX(-20px);
+          animation: slideIn 0.5s ease-out forwards;
+          animation-delay: calc(0.1s * var(--index));
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .timeline-item:nth-child(1) {
+          --index: 1;
+        }
+        .timeline-item:nth-child(2) {
+          --index: 2;
+        }
+        .timeline-item:nth-child(3) {
+          --index: 3;
+        }
+        .timeline-item:nth-child(4) {
+          --index: 4;
+        }
+
+        @keyframes slideIn {
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .timeline-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        .timeline-marker {
           display: flex;
           flex-direction: column;
-          gap: 15px;
+          align-items: center;
+          margin-right: 12px;
         }
 
-        .direction-segment {
-          border: 1px solid #eee;
-          border-radius: 8px;
-          padding: 12px;
+        .marker-circle {
+          width: 32px;
+          height: 32px;
+          background-color: #f1f3f5;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+          transition: transform 0.3s ease, background 0.3s ease;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-dashed {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 4px;
+          gap: 2px;
+        }
+
+        .dash-dot {
+          width: 4px;
+          height: 4px;
+          background-color: #d1d5db;
+          border-radius: 50%;
+        }
+
+        .timeline-line {
+          width: 1px;
+          background-color: #d1d5db;
+          flex: 1;
+          margin-top: 4px;
+        }
+
+        .timeline-line.bold {
+          width: 3px;
+          background: linear-gradient(180deg, #3b82f6, #60a5fa);
+        }
+
+        .timeline-content {
+          flex: 1;
+          padding: 10px 14px;
+          border-radius: 12px;
+          background-color: #ffffff;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          transition: background-color 0.3s ease, transform 0.3s ease,
+            box-shadow 0.3s ease;
+        }
+
+        .timeline-item:hover .timeline-content {
+          background-color: #f8fafc;
+        }
+
+        .timeline-item:hover .marker-circle {
+          transform: scale(1.1);
+          background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        .timeline-item:hover .transport-icon {
+          color: #fff;
         }
 
         .segment-header {
           display: flex;
           align-items: center;
-          margin-bottom: 10px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #f0f0f0;
+          margin-bottom: 6px;
         }
 
         .transport-icon {
-          font-size: 20px;
-          margin-right: 10px;
+          font-size: 18px;
+          color: #1e293b;
+          transition: color 0.3s ease;
         }
 
         .transport-type {
-          font-weight: 600;
-          color: #444;
+          font-weight: 500;
+          font-size: 14px;
+          color: #1e293b;
+          text-transform: capitalize;
+          letter-spacing: 0.1px;
+          line-height: 1.4;
         }
 
         .segment-details {
-          padding-left: 10px;
+          font-size: 13px;
         }
 
         .segment-point {
           display: flex;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
         }
 
         .point-label {
-          width: 50px;
-          font-weight: 500;
-          color: #777;
+          width: 65px;
+          font-weight: 400;
+          color: #64748b;
+          letter-spacing: 0.1px;
+          line-height: 1.4;
         }
 
         .point-value {
           flex: 1;
-          color: #555;
+          color: #1e293b;
+          letter-spacing: 0.1px;
+          line-height: 1.4;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .sidebar {
+            width: 280px;
+            padding: 20px;
+          }
+
+          .show-button {
+            left: 0;
+          }
+
+          .sidebar-header h2 {
+            font-size: 22px;
+          }
+
+          .info-section h3 {
+            font-size: 16px;
+          }
+
+          .info-item {
+            padding: 12px 0;
+          }
+
+          .icon {
+            width: 32px;
+            height: 32px;
+            font-size: 18px;
+            margin-right: 12px;
+          }
+
+          .label {
+            font-size: 13px;
+          }
+
+          .value {
+            font-size: 15px;
+          }
+
+          .timeline {
+            padding-left: 16px;
+          }
+
+          .timeline-item {
+            margin-bottom: 20px;
+          }
+
+          .timeline-marker {
+            margin-right: 10px;
+          }
+
+          .marker-circle {
+            width: 28px;
+            height: 28px;
+          }
+
+          .transport-icon {
+            font-size: 16px;
+          }
+
+          .transport-type {
+            font-size: 13px;
+          }
+
+          .segment-details {
+            font-size: 12px;
+          }
+
+          .segment-point {
+            margin-bottom: 3px;
+          }
+
+          .point-label {
+            width: 60px;
+            font-size: 12px;
+          }
+
+          .point-value {
+            font-size: 12px;
+          }
+
+          .timeline-dashed {
+            gap: 1px;
+          }
+
+          .dash-dot {
+            width: 3px;
+            height: 3px;
+          }
+
+          .timeline-line {
+            width: 1px;
+          }
+
+          .timeline-line.bold {
+            width: 2px;
+          }
+
+          .timeline-content {
+            padding: 8px 12px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .sidebar {
+            width: 100%;
+            max-width: 100%;
+            padding: 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+          }
+
+          .show-button {
+            left: 0;
+            top: 16px;
+            width: 36px;
+            height: 36px;
+            font-size: 14px;
+          }
+
+          .toggle-button {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+          }
+
+          .sidebar-header h2 {
+            font-size: 20px;
+          }
+
+          .info-section h3 {
+            font-size: 15px;
+          }
+
+          .overview-card {
+            padding: 16px;
+          }
+
+          .info-item {
+            padding: 10px 0;
+          }
+
+          .icon {
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            margin-right: 10px;
+          }
+
+          .label {
+            font-size: 12px;
+          }
+
+          .value {
+            font-size: 14px;
+          }
+
+          .timeline {
+            padding-left: 12px;
+          }
+
+          .timeline-item {
+            margin-bottom: 16px;
+          }
+
+          .timeline-marker {
+            margin-right: 8px;
+          }
+
+          .marker-circle {
+            width: 24px;
+            height: 24px;
+          }
+
+          .transport-icon {
+            font-size: 14px;
+          }
+
+          .transport-type {
+            font-size: 12px;
+          }
+
+          .segment-details {
+            font-size: 11px;
+          }
+
+          .segment-point {
+            margin-bottom: 2px;
+          }
+
+          .point-label {
+            width: 50px;
+            font-size: 11px;
+          }
+
+          .point-value {
+            font-size: 11px;
+          }
+
+          .timeline-dashed {
+            gap: 1px;
+          }
+
+          .dash-dot {
+            width: 2px;
+            height: 2px;
+          }
+
+          .timeline-line {
+            width: 1px;
+          }
+
+          .timeline-line.bold {
+            width: 2px;
+          }
+
+          .timeline-content {
+            padding: 6px 10px;
+          }
         }
       `}</style>
     </div>
