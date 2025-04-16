@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { data } from "../utils/data";
-import "./styles/Sidebar.css";
+import "../styles/sidebar.css";
 
 // Load FontAwesome for icons
 const FontAwesomeCDN = () => (

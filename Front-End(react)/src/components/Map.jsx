@@ -2,61 +2,21 @@ import {
     MapContainer,
     TileLayer,
     Polyline,
-    useMap,
     Marker,
     Popup,
-    useMapEvent,
     ZoomControl,
 } from "react-leaflet";
 
-import L from "leaflet";
 import "leaflet-routing-machine";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { allPathCoordinates, data } from "../utils/data";
 import FitBounds from "./FitBounds";
 import RedIcon from "../ui/RedIcon";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import DeleteButton from "../ui/DeleteButton";
-
-const ClickHandler = ({ setLocation, setDestination, location }) => {
-    useMapEvent("click", e => {
-        const { lat, lng } = e.latlng;
-        if (!location) {
-            setLocation({ lat, lng });
-        } else {
-            setDestination({ lat, lng });
-        }
-    });
-
-    return null;
-};
-
-const RoutingControl = ({ path }) => {
-    const map = useMap();
-
-    useEffect(() => {
-        const control = L.Routing.control({
-            waypoints: path.map(coord => L.latLng(coord)),
-            router: L.Routing.osrmv1({
-                serviceUrl:
-                    "https://routing.openstreetmap.de/routed-car/route/v1",
-            }),
-            lineOptions: {
-                styles: [{ color: "red", opacity: 0.8, weight: 5 }],
-            },
-            createMarker: () => null,
-            addWaypoints: false,
-            show: false,
-            fitSelectedRoutes: false,
-            draggableWaypoints: false,
-        }).addTo(map);
-
-        return () => map.removeControl(control);
-    }, [map, path]);
-
-    return null;
-};
+import { ClickHandler } from "./ClickHandler";
+import { RoutingControl } from "./RoutingControl";
 
 const MyMap = () => {
     const [location, setLocation] = useState(null);
