@@ -20,6 +20,44 @@
   font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     sans-serif;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.3s ease;
+  opacity: 0;
+  transform: translateX(-100%);
+
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #60a5fa #f1f5f9;
+}
+
+/* WebKit browsers (Chrome, Safari, newer versions of Opera) */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #60a5fa);
+  border-radius: 10px;
+  border: 2px solid #f1f5f9;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb, #4b9efa);
+}
+
+.sidebar-visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.sidebar-hidden {
+  transform: translateX(-100%);
+  opacity: 0;
 }
 
 .show-button {
@@ -40,7 +78,18 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, background 0.3s ease, left 0.3s ease;
+  transition: transform 0.3s ease, background 0.3s ease, left 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.show-button-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.show-button-hidden {
+  opacity: 0;
+  transform: scale(0.8);
 }
 
 .show-button:hover {
@@ -122,6 +171,7 @@
   border: 1px solid #e2e8f0;
   opacity: 0;
   animation: fadeIn 0.5s ease-out forwards;
+  animation-delay: 0.2s;
 }
 
 @keyframes fadeIn {
@@ -203,7 +253,7 @@
   opacity: 0;
   transform: translateX(-20px);
   animation: slideIn 0.5s ease-out forwards;
-  animation-delay: calc(0.1s * var(--index));
+  animation-delay: calc(0.1s * var(--index) + 0.3s);
   transition: transform 0.3s ease, box-shadow 0.3s ease,
     background-color 0.3s ease;
   cursor: pointer;

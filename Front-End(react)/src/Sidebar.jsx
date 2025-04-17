@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { data } from "./data";
 import "./styles/Sidebar.css";
 
@@ -16,6 +16,16 @@ const FontAwesomeCDN = () => (
 const Sidebar = ({ selectedRoute, setSelectedRoute }) => {
   const { journey, pathResult } = data;
   const [isVisible, setIsVisible] = useState(false);
+  const [animationClass, setAnimationClass] = useState("");
+
+  // Effect to handle animation classes when visibility changes
+  useEffect(() => {
+    if (isVisible) {
+      setAnimationClass("sidebar-visible");
+    } else {
+      setAnimationClass("sidebar-hidden");
+    }
+  }, [isVisible]);
 
   // Function to toggle sidebar visibility
   const toggleSidebar = () => {
@@ -63,122 +73,124 @@ const Sidebar = ({ selectedRoute, setSelectedRoute }) => {
   return (
     <div className="sidebar-container">
       <FontAwesomeCDN />
-      {!isVisible && (
-        <button className="show-button" onClick={toggleSidebar}>
-          <i className="fas fa-chevron-right"></i>
-        </button>
-      )}
-      {isVisible && (
-        <div className="sidebar">
-          <div className="sidebar-header">
-            <h2>Travel Details</h2>
-            <button className="toggle-button" onClick={toggleSidebar}>
-              <i className="fas fa-chevron-left"></i>
-            </button>
-          </div>
+      <button
+        className={`show-button ${
+          !isVisible ? "show-button-visible" : "show-button-hidden"
+        }`}
+        onClick={toggleSidebar}
+      >
+        <i className="fas fa-chevron-right"></i>
+      </button>
 
-          <div className="journey-info">
-            <div className="info-section">
-              <h3>Journey Overview</h3>
-              <div className="overview-card">
-                <div className="info-item">
-                  <span className="icon">
-                    <i className="fas fa-map-marker-alt"></i>
+      <div className={`sidebar ${animationClass}`}>
+        <div className="sidebar-header">
+          <h2>Travel Details</h2>
+          <button className="toggle-button" onClick={toggleSidebar}>
+            <i className="fas fa-chevron-left"></i>
+          </button>
+        </div>
+
+        <div className="journey-info">
+          <div className="info-section">
+            <h3>Journey Overview</h3>
+            <div className="overview-card">
+              <div className="info-item">
+                <span className="icon">
+                  <i className="fas fa-map-marker-alt"></i>
+                </span>
+                <div className="info-content">
+                  <span className="label">Start Location:</span>
+                  <span className="value">
+                    {formatCoords(journey.location)}
                   </span>
-                  <div className="info-content">
-                    <span className="label">Start Location:</span>
-                    <span className="value">
-                      {formatCoords(journey.location)}
-                    </span>
-                  </div>
                 </div>
-                <div className="info-item">
-                  <span className="icon">
-                    <i className="fas fa-flag-checkered"></i>
+              </div>
+              <div className="info-item">
+                <span className="icon">
+                  <i className="fas fa-flag-checkered"></i>
+                </span>
+                <div className="info-content">
+                  <span className="label">Destination:</span>
+                  <span className="value">
+                    {formatCoords(journey.destination)}
                   </span>
-                  <div className="info-content">
-                    <span className="label">Destination:</span>
-                    <span className="value">
-                      {formatCoords(journey.destination)}
-                    </span>
-                  </div>
                 </div>
-                <div className="info-item">
-                  <span className="icon">
-                    <i className="fas fa-dollar-sign"></i>
+              </div>
+              <div className="info-item">
+                <span className="icon">
+                  <i className="fas fa-dollar-sign"></i>
+                </span>
+                <div className="info-content">
+                  <span className="label">Total Fee:</span>
+                  <span className="value">
+                    ${pathResult.totalFee.toFixed(2)}
                   </span>
-                  <div className="info-content">
-                    <span className="label">Total Fee:</span>
-                    <span className="value">
-                      ${pathResult.totalFee.toFixed(2)}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="info-section">
-              <h3>Route Directions</h3>
-              <div className="timeline">
-                {pathResult.totalPath.map((segment, index) => (
-                  <div
-                    key={index}
-                    className={`timeline-item ${
-                      selectedRoute === index ? "selected" : ""
-                    }`}
-                    onClick={() => setSelectedRoute(index)}
-                  >
-                    <div className="timeline-marker">
-                      <div className="marker-circle">
-                        <span className="transport-icon">
-                          {getTransportIcon(segment.type)}
-                        </span>
-                      </div>
-                      {index < pathResult.totalPath.length - 1 &&
-                        renderTimelineLine(segment.type)}
+          <div className="info-section">
+            <h3>Route Directions</h3>
+            <div className="timeline">
+              {pathResult.totalPath.map((segment, index) => (
+                <div
+                  key={index}
+                  className={`timeline-item ${
+                    selectedRoute === index ? "selected" : ""
+                  }`}
+                  onClick={() => setSelectedRoute(index)}
+                >
+                  <div className="timeline-marker">
+                    <div className="marker-circle">
+                      <span className="transport-icon">
+                        {getTransportIcon(segment.type)}
+                      </span>
                     </div>
-                    <div className="timeline-content">
-                      <div className="segment-header">
-                        <span className="transport-type">
-                          {segment.type.charAt(0).toUpperCase() +
-                            segment.type.slice(1)}
+                    {index < pathResult.totalPath.length - 1 &&
+                      renderTimelineLine(segment.type)}
+                  </div>
+                  <div className="timeline-content">
+                    <div className="segment-header">
+                      <span className="transport-type">
+                        {segment.type.charAt(0).toUpperCase() +
+                          segment.type.slice(1)}
+                      </span>
+                    </div>
+                    <div className="segment-details">
+                      <div className="segment-point">
+                        <span className="point-label">From:</span>
+                        <span className="point-value">
+                          {segment.coordinates[0][0].toFixed(6)},{" "}
+                          {segment.coordinates[0][1].toFixed(6)}
                         </span>
                       </div>
-                      <div className="segment-details">
-                        <div className="segment-point">
-                          <span className="point-label">From:</span>
-                          <span className="point-value">
-                            {segment.coordinates[0][0].toFixed(6)},{" "}
-                            {segment.coordinates[0][1].toFixed(6)}
-                          </span>
-                        </div>
-                        <div className="segment-point">
-                          <span className="point-label">To:</span>
-                          <span className="point-value">
-                            {segment.coordinates[
-                              segment.coordinates.length - 1
-                            ][0].toFixed(6)}
-                            ,
-                            {segment.coordinates[
-                              segment.coordinates.length - 1
-                            ][1].toFixed(6)}
-                          </span>
-                        </div>
-                        <div className="segment-point">
-                          <span className="point-label">Points:</span>
-                          <span className="point-value">
-                            {segment.coordinates.length}
-                          </span>
-                        </div>
+                      <div className="segment-point">
+                        <span className="point-label">To:</span>
+                        <span className="point-value">
+                          {segment.coordinates[
+                            segment.coordinates.length - 1
+                          ][0].toFixed(6)}
+                          ,
+                          {segment.coordinates[
+                            segment.coordinates.length - 1
+                          ][1].toFixed(6)}
+                        </span>
+                      </div>
+                      <div className="segment-point">
+                        <span className="point-label">Points:</span>
+                        <span className="point-value">
+                          {segment.coordinates.length}
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
