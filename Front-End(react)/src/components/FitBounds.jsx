@@ -4,10 +4,8 @@ import L from "leaflet";
 
 const FitBounds = ({ coordinates }) => {
     const map = useMap();
-
     useEffect(() => {
         if (!coordinates || coordinates.length === 0) return;
-
         const bounds = L.latLngBounds(
             coordinates.map(coord => [coord[1], coord[0]])
         );
