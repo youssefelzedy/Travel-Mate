@@ -51,6 +51,7 @@
         .then(data => assignPointsToTiles(data));
     });
 
+
     // Highlight visible tiles at current zoom
     let tileRects = [];
 
