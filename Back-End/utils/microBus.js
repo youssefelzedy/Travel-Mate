@@ -1,5 +1,6 @@
 const fs = require("fs").promises;
-const { dijkstra } = require("./distanceCalculation");
+const aStar = require(`${__dirname}/distanceCalculation`);
+const { getNeighboringPoints, projectLatLng } = require(`${__dirname}/geoUtils`); // Importing from geoUtils
 
 class BusLine {
   pointsLine = [];
@@ -14,47 +15,33 @@ class BusLine {
     this.destination = destination;
   }
 
-  _getTile(tilePoints, tileX, tileY, range = 1) {
-    const neighbors = [];
+  getNeighboringPoints(lat, lng, tilePoints = this.tilePoints) {
+    return getNeighboringPoints(lat, lng, tilePoints);
+  }
 
-    // Iterate over the grid of neighboring tiles based on the range
-    for (let dx = -range; dx <= range; dx++) {
-      for (let dy = -range; dy <= range; dy++) {
-        const neighborKey = `${tileX + dx},${tileY + dy}`;
-        //   console.log("neighborKey", neighborKey);
-        if (tilePoints[neighborKey]) {
-          neighbors.push(...tilePoints[neighborKey]);
-        }
-      }
-    }
-
-    // If no points found, extend the range and search again
-    if (neighbors.length === 0) {
-      if (range < 3) {
-        return this._getTile(tilePoints, tileX, tileY, range + 1);
-      }
-      // Limit the range to avoid excessive searching
-      return [];
-    }
-
-    return neighbors;
+  projectLatLng(lat, lng, tileSize = 256, zoom = 19) {
+    return projectLatLng(lat, lng, tileSize, zoom);
   }
 
   // This method is intended to process the graph data for the bus line.
-  _processGraph(pointsRelation) {
-    let graph = {};
+  _processGraph(pointsRelation, pointsLocation, tilePoints) {
 
-    for (const pointLocation of this.neighborPointsLocation) {
-      for (const pointDestination of this.neighborPointsDestination) {
-        const startNode = pointLocation.name;
-        const endNode = pointDestination.name;
-        const result = dijkstra(pointsRelation, startNode, endNode);
-        console.log("pointLocation", pointLocation);
-        console.log("pointDestination", pointDestination);
-        console.log(result);
-        console.log("==========================");
-      }
-    }
+    // Implement the logic to process the graph data.
+    // This may involve creating nodes, edges, and calculating distances.
+    // You can use the aStar function for pathfinding.
+    // Example:
+    const startNode = this.neighborPointsLocation;
+    const endNode = this.neighborPointsDestination;
+
+    const current = {
+      lat: this.location.lat,
+      lng: this.location.lng,
+    };
+
+    const result = aStar(pointsRelation, pointsLocation, tilePoints, current, startNode, endNode);
+    console.log("Result:", result);
+    this.finalResult = result;
+    
   }
   _preparingResult() {
     // This method is intended to prepare the final result after processing the graph.
@@ -68,71 +55,47 @@ class BusLine {
     return data;
   }
 
-  projectLatLng(lat, lng, tileSize = 256, zoom = 19) {
-    const scale = tileSize * Math.pow(2, zoom); // e.g. 256, 512, 1024, etc.
-
-    const x = ((lng + 180) / 360) * scale;
-
-    const latRad = (lat * Math.PI) / 180;
-    const y =
-      ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
-      scale;
-
-    return { x, y };
-  }
-
   async initializeData() {
     // Load the tile points from the file
-    const tilePoints = await this.loadData("storage/tiles-group.json");
+    this.tilePoints = await this.loadData("storage/tiles-group.json");
 
     // Get points in neighboring tiles from location & destination
-    const pointLocation = this.projectLatLng(
+    this.neighborPointsLocation = this.getNeighboringPoints(
       this.location.lat,
       this.location.lng,
-      this.tileSize,
-      this.zoom
-    );
-    const tileXLocation = Math.floor(pointLocation.x / this.tileSize);
-    const tileYLocation = Math.floor(pointLocation.y / this.tileSize);
-
-    this.neighborPointsLocation = this._getTile(
-      tilePoints,
-      tileXLocation,
-      tileYLocation
+      this.tilePoints
     );
 
-    //  console.log("neighborPointsLocation", this.neighborPointsLocation);
+
     if (this.neighborPointsLocation.length === 0) {
       throw new Error("Location not found");
     }
 
-    const pointDestination = this.projectLatLng(
+    this.neighborPointsDestination = this.getNeighboringPoints(
       this.destination.lat,
       this.destination.lng,
-      this.tileSize,
-      this.zoom
+      this.tilePoints
     );
-    const tileXDestination = Math.floor(pointDestination.x / this.tileSize);
-    const tileYDestination = Math.floor(pointDestination.y / this.tileSize);
 
-    this.neighborPointsDestination = this._getTile(
-      tilePoints,
-      tileXDestination,
-      tileYDestination
-    );
-    //  console.log("neighborPointsDestination", this.neighborPointsDestination);
+
     if (this.neighborPointsDestination.length === 0) {
       throw new Error("Destination not found");
     }
+
 
     // Process the graph
     const pointsRelation = await this.loadData(
       "storage/relations_with_dis-and-fee.json"
     );
-    //  console.log("pointsRelation", pointsRelation);
-    this._processGraph(pointsRelation);
+
+    const pointsLocation = await this.loadData(
+      "storage/roads-locations.json"
+    );
+    this._processGraph(pointsRelation, pointsLocation, this.tilePoints);
 
     // Prepare the result
     this._preparingResult();
   }
 }
+
+module.exports = BusLine;
