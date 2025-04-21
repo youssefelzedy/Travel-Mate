@@ -24,9 +24,23 @@ const journeyRoutes = require(`${__dirname}/routes/journeyRoutes`);
 dbConnect();
 const app = express();
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors());
 
+// Enable CORS with specific options
+app.use(cors({
+  origin: '*', // Allow all origins (adjust as needed for production)
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Middleware to set security headers
 app.use(helmet());
+
+// Middleware to set Referrer-Policy header
+app.use((req, res, next) => {
+  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  next();
+});
+
 app.use(xss());
 app.use(mongoSanitize());
 const limiter = rateLimit({

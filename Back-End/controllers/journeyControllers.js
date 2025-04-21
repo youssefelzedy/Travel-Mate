@@ -161,11 +161,19 @@ exports.searchMicrobus = catchAsync(async (req, res, next) => {
 
   const coreMicrobus = new microbus(location, destination);
 
-  await coreMicrobus.initializeData(); // waits properly4
-  res.locals.pathResult = coreMicrobus.finalResult;
-  res.locals.transport = "microbus";
-
-  next();
+  coreMicrobus.initializeData()
+    .then(() => {
+      coreMicrobus._preparingResult();
+      res.locals.pathResult = coreMicrobus.finalResult;
+      next();
+    })
+    .catch((err) => {
+      next(new AppError({
+        english: "Microbus search failed",
+        arabic: "فشل البحث عن ميكروباص",
+      }, 400));
+      
+    });
 });
 
 exports.searchTaxi = catchAsync(async (req, res, next) => {
