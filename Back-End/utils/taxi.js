@@ -1,125 +1,99 @@
-const { Client } = require("@googlemaps/google-maps-services-js");
 const axios = require('axios');
-const polyline = require('@mapbox/polyline');
 
+// OSRM API endpoint (using the public demo server)
+const OSRM_BASE_URL = 'http://router.project-osrm.org';
 
 class TaxiLine {
     constructor(location, destination) {
+        // Assuming location and destination are objects with lat and lon properties
+        // e.g., { lat: 31.2357, lon: 32.2841 }
+        if (!location || !location.lat || !location.lon || !destination || !destination.lat || !destination.lon) {
+            throw new Error("Invalid location or destination provided. Both must have 'lat' and 'lon' properties.");
+        }
         this.location = location;
         this.destination = destination;
-        this.apiKey = process.env.GOOGLE_API_KEY;
-        this.finalResult = {};
-        this.districtMapping = {
-            "El Sharq": "قسم الشروق",
-            "Al Arab": "قسم العرب",
-            "El Manakh": "قسم المناخ",
-            "Al Zohour": "قسم الزهور",
-            "قسم الشرق": "قسم الشروق",
-            "قسم الشروق": "الشروق",
-            "قسم الشروق": "الشرق",
-            "قسم المناخ": "المناخ",
-            "قسم الزهور": "الزهور",
-            "قسم العرب": "العرب"
-        };
-        this.client = new Client({});
+        this.routeData = null; // To store the result from OSRM
     }
 
-    async initialize(travelMode = 'DRIVING') {
-        this.finalResult['location'] = this.location;
-        this.finalResult['destination'] = this.destination;
-        await this.calculateAndDisplayRoute(this.location, this.destination, travelMode);
+    /**
+     * Formats coordinates for the OSRM API request.
+     * @returns {string} Formatted coordinate string "lon,lat;lon,lat"
+     */
+    _formatCoordinates() {
+        return `${this.location.lon},${this.location.lat};${this.destination.lon},${this.destination.lat}`;
     }
 
-    async calculateAndDisplayRoute(location, destination, travelMode = 'DRIVING') {
-        if (!location || !destination) return;
+    /**
+     * Calculates the route using the OSRM API.
+     * Stores the route data in this.routeData.
+     * @param {object} options - Optional OSRM parameters (e.g., { overview: 'full', geometries: 'geojson' })
+     * @returns {Promise<object|null>} The route data from OSRM or null if an error occurs.
+     */
+    async calculateRoute(options = {}) {
+        const coordinates = this._formatCoordinates();
+        const url = `${OSRM_BASE_URL}/route/v1/driving/${coordinates}`;
 
         try {
-            const response = await this.client.directions({
-                params: {
-                    origin: location,
-                    destination: destination,
-                    mode: travelMode.toLowerCase(),
-                    key: this.apiKey
-                }
-            });
+            const response = await axios.get(url, { params: options });
 
-            const result = response.data;
-            if (result.status === 'OK') {
-                this.routePath = polyline.decode(result.routes[0].overview_polyline.points);
-                await this.getDistrictsAlongRoute(this.routePath);
+            if (response.data && response.data.code === 'Ok' && response.data.routes && response.data.routes.length > 0) {
+                this.routeData = response.data;
+                console.log('Route calculated successfully.');
+                return this.routeData;
             } else {
-                console.log('Error calculating route:', result.status);
+                console.error('Error calculating route: OSRM response not OK or no routes found.', response.data ? response.data.code : 'No response data');
+                this.routeData = null;
+                return null;
             }
         } catch (error) {
-            console.error('Error calculating route:', error);
+            console.error('Error fetching route from OSRM:', error.response ? error.response.data : error.message);
+            this.routeData = null;
+            return null;
         }
     }
 
-    normalizeDistrict(district) {
-        for (let key in this.districtMapping) {
-            if (district === key || district === this.districtMapping[key]) {
-                return this.districtMapping[key];
-            }
-        }
-        return null;
-    }
-
-    async getDistrictFromLatLng(lat, lng) {
-        try {
-            const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-                params: {
-                    latlng: `${lat},${lng}`,
-                    key: this.apiKey
-                }
-            });
-
-            if (response.data.results.length > 0) {
-                const addressComponents = response.data.results[0].address_components;
-                const districtComponent = addressComponents.find(component => 
-                    component.types.includes('locality') || 
-                    component.types.includes('sublocality') ||
-                    component.types.includes('administrative_area_level_2')
-                );
-
-                if (districtComponent) {
-                    let dis = this.normalizeDistrict(districtComponent.long_name);
-                    if (dis) {
-                        return dis;
-                    } else {
-                        return 'Unknown District';
-                    }
-                } else {
-                    return 'Unknown District';
-                }
-            } else {
-                throw new Error('No results found for the given location');
-            }
-        } catch (error) {
-            console.error('Error fetching district information:', error.message);
-            return 'Unknown District';
+    /**
+     * Gets the distance of the calculated route.
+     * Requires calculateRoute to be called successfully first.
+     * @returns {number|null} The distance in meters, or null if route data is not available.
+     */
+    getDistance() {
+        if (this.routeData && this.routeData.routes && this.routeData.routes.length > 0) {
+            // Distance is typically in meters
+            return this.routeData.routes[0].distance;
+        } else {
+            console.warn('Route data not available. Call calculateRoute first.');
+            return null;
         }
     }
 
-    async getDistrictsAlongRoute(route) {
-        const districts = new Set();
-        for (let i = 0; i < route.length; i += Math.floor(route.length / 3)) {
-            let [lat, lng] = route[i];
-            const district = await this.getDistrictFromLatLng(lat, lng);
-            if (district && district !== 'Unknown District') {
-                districts.add(district);
-            }
+     /**
+     * Gets the duration of the calculated route.
+     * Requires calculateRoute to be called successfully first.
+     * @returns {number|null} The duration in seconds, or null if route data is not available.
+     */
+    getDuration() {
+        if (this.routeData && this.routeData.routes && this.routeData.routes.length > 0) {
+             // Duration is typically in seconds
+            return this.routeData.routes[0].duration;
+        } else {
+            console.warn('Route data not available. Call calculateRoute first.');
+            return null;
         }
+    }
 
-        const districtList = Array.from(districts);
-        const totalDistricts = districts.size;
-        this.finalResult['districtList'] = districtList;
-
-        if (totalDistricts === 1) {
-            this.finalResult['price'] = 12;
-        } else if (totalDistricts === 2 || totalDistricts === 3) {
-            this.finalResult['price'] = 16;
-        } else if (totalDistricts >= 4) {
-            this.finalResult['price'] = 22.5;
+    /**
+     * Gets the geometry of the calculated route.
+     * Requires calculateRoute to be called successfully first.
+     * Requires 'geometries' option in calculateRoute (e.g., 'geojson').
+     * @returns {object|string|null} The route geometry (format depends on OSRM options), or null.
+     */
+    getGeometry() {
+        if (this.routeData && this.routeData.routes && this.routeData.routes.length > 0) {
+            return this.routeData.routes[0].geometry;
+        } else {
+            console.warn('Route data not available. Call calculateRoute first.');
+            return null;
         }
     }
 }
