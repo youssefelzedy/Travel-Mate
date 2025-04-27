@@ -1,27 +1,47 @@
-const TaxiLine = require('./taxi'); // Make sure the path is correct
+const fs = require('fs');
+const path = require('path');
+const turf = require('@turf/turf');
+const TaxiLine = require('./taxi');
 
 // --- Configuration ---
-// Example coordinates (Port Said, Egypt)
-const startLocation = { lat: 31.243843, lon: 32.318923 };
-const endDestination = { lat: 31.263347, lon: 32.308769 };
+// Example coordinates (Port Said, Egypt) - Ensure these are relevant to your GeoJSON
+const startLocation = { lat: 31.243843, lon: 32.318923 }; // Example: Near Port Fouad Ferry
+const endDestination = { lat: 31.263347, lon: 32.308769 }; // Example: Near El Gomrok
 
-// Example coordinates that might cause an error (e.g., middle of the ocean)
-// const startLocation = { lat: 0, lon: 0 };
-// const endDestination = { lat: 1, lon: 1 };
-
-// OSRM options (optional)
-// See OSRM docs for available options: https://project-osrm.org/docs/v5.24.0/api/#route-service
+// OSRM options (MUST include geometries: 'geojson')
 const routeOptions = {
-    overview: 'full',       // 'simplified', 'full', 'false'
-    geometries: 'geojson', // 'polyline', 'polyline6', 'geojson'
-    // steps: true,         // Include step-by-step instructions
-    // alternatives: true   // Try to compute alternative routes
-};
+    overview: 'full',
+    geometries: 'geojson', // Required for Turf intersection
+    // steps: true,
+    // alternatives: true
+};elganoub, elshark, portfuad
 // --- End Configuration ---
 
+// --- Load Neighborhoods ---
+let neighborhoodFeatures = [];
+const geojsonPath = path.join(__dirname, 'portsaid.geojson');
+
+try {
+    if (fs.existsSync(geojsonPath)) {
+        const rawData = fs.readFileSync(geojsonPath);
+        const neighborhoodsGeoJSON = JSON.parse(rawData);
+        if (neighborhoodsGeoJSON && neighborhoodsGeoJSON.type === 'FeatureCollection' && Array.isArray(neighborhoodsGeoJSON.features)) {
+            neighborhoodFeatures = neighborhoodsGeoJSON.features.filter(f => f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')); // Ensure features have valid geometry
+            console.log(`Loaded ${neighborhoodFeatures.length} valid neighborhood features from ${geojsonPath}`);
+        } else {
+            console.error(`Error: ${geojsonPath} is not a valid GeoJSON FeatureCollection.`);
+        }
+    } else {
+         console.error(`Error: Neighborhood file not found at ${geojsonPath}`);
+    }
+} catch (err) {
+    console.error(`Error loading or parsing ${geojsonPath}:`, err);
+}
+// --- End Load Neighborhoods ---
+elganoub, elshark, portfuad
 
 async function runTest() {
-    console.log(`Testing TaxiLine from ${JSON.stringify(startLocation)} to ${JSON.stringify(endDestination)}`);
+    console.log(`\nTesting TaxiLine from ${JSON.stringify(startLocation)} to ${JSON.stringify(endDestination)}`);
 
     try {
         // 1. Create an instance
@@ -36,28 +56,48 @@ async function runTest() {
         if (routeData) {
             console.log('\n--- Route Calculation Successful ---');
 
-            // Get specific details using the getter methods
-            const distance = taxiRoute.getDistance(); // meters
-            const duration = taxiRoute.getDuration(); // seconds
-            const geometry = taxiRoute.getGeometry();
+            const distance = taxiRoute.getDistance();
+            const duration = taxiRoute.getDuration();
+            const geometry = taxiRoute.getGeometry(); // Should be GeoJSON LineString object
 
             console.log(`Distance: ${distance !== null ? (distance / 1000).toFixed(2) + ' km' : 'N/A'}`);
             console.log(`Duration: ${duration !== null ? (duration / 60).toFixed(1) + ' minutes' : 'N/A'}`);
 
-            // Log geometry (can be large if geojson)
-            if (geometry) {
-                if (typeof geometry === 'object') {
-                     console.log(`Geometry Type: ${geometry.type}`);
-                     console.log(`Geometry Coordinates Preview: ${JSON.stringify(geometry.coordinates?.[0])}...`); // Show first coordinate pair
-                } else {
-                    console.log(`Geometry Preview: ${geometry.substring(0, 50)}...`); // Show start of polyline
-                }
-            } else {
-                 console.log('Geometry: N/A (Check routeOptions)');
-            }
+            // 4. Perform Neighborhood Intersection Check
+            let intersectedCount = 0;
+            const intersectedNeighborhoods = [];
 
-            // console.log('\nRaw OSRM Response:');
-            // console.log(JSON.stringify(routeData, null, 2)); // Pretty print the full response
+            if (geometry && geometry.type === 'LineString' && neighborhoodFeatures.length > 0) {
+                console.log('Checking route intersection with neighborhoods...');
+                try {
+                    const routeLineString = turf.lineString(geometry.coordinates); // Create Turf LineString
+
+                    for (const neighborhoodFeature of neighborhoodFeatures) {
+                         // Use turf.booleanIntersects for the check
+                         // It checks if any part of the line touches or crosses the polygon boundary or interior
+                        const intersects = turf.booleanIntersects(routeLineString, neighborhoodFeature);
+
+                        if (intersects) {
+                            intersectedCount++;
+                            intersectedNeighborhoods.push(neighborhoodFeature.properties?.name || `Unnamed Feature ${neighborhoodFeature.id || ''}`);
+                        }
+                    }
+                     console.log(`\n--- Neighborhood Intersection Results ---`);
+                     console.log(`Route intersects with ${intersectedCount} neighborhoods.`);
+                     if (intersectedCount > 0) {
+                         console.log(`Intersected Neighborhoods: ${intersectedNeighborhoods.join(', ')}`);
+                     }
+
+                } catch (turfError) {
+                     console.error("Error during Turf.js intersection check:", turfError);
+                }
+
+            } else if (neighborhoodFeatures.length === 0) {
+                 console.warn('Neighborhood data not loaded or empty. Skipping intersection check.');
+            } else {
+                console.warn('Route geometry is not available or not a LineString. Cannot perform intersection check.');
+                console.warn('Ensure routeOptions included { geometries: "geojson" }');
+            }
 
         } else {
             console.log('\n--- Route Calculation Failed ---');
@@ -65,7 +105,7 @@ async function runTest() {
         }
 
     } catch (error) {
-        console.error('\n--- An Error Occurred ---');
+        console.error('\n--- An Error Occurred During Test ---');
         console.error(error.message);
         if (error.stack) {
             console.error(error.stack);
