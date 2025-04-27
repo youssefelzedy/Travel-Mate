@@ -4,7 +4,7 @@ const catchAsync = require(`${__dirname}/../utils/catchAsync`);
 const AppError = require(`${__dirname}/../utils/appError`);
 const e = require("express");
 const microbus = require(`${__dirname}/../utils/microBus`);
-const taxi = require(`${__dirname}/../utils/taxi`);
+const TaxiLine = require(`${__dirname}/../utils/taxi`); // Renamed import for clarity
 
 exports.getAllJourneys = catchAsync(async (req, res, next) => {
   const journeys = await Journey.find();
@@ -177,38 +177,77 @@ exports.searchMicrobus = catchAsync(async (req, res, next) => {
 });
 
 exports.searchTaxi = catchAsync(async (req, res, next) => {
-  try {
-    const location_lat = req.body.location.lat;
-    const location_lng = req.body.location.lng;
-    const destination_lat = req.body.destination.lat;
-    const destination_lng = req.body.destination.lng;
+  const location_lat = req.body.location?.lat;
+  const location_lng = req.body.location?.lng; // Assuming lng is longitude
+  const destination_lat = req.body.destination?.lat;
+  const destination_lng = req.body.destination?.lng; // Assuming lng is longitude
 
-    const location = { lat: location_lat, lng: location_lng };
-    const destination = { lat: destination_lat, lng: destination_lng };
-
-    const coreTaxi = new taxi(location, destination);
-    coreTaxi.initialize().then(() => {
-      res.status(200).json({
-        status: "success",
-        massage: {
-          english: "Taxi search completed successfully",
-          arabic: "تم البحث عن تاكسي بنجاح",
-        },
-        data: {
-          result: coreTaxi.finalResult,
-        },
-      });
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: "fail",
-      massage: {
-        english: "Taxi search failed",
-        arabic: "فشل البحث عن تاكسي",
-      },
-      data: {
-        err,
-      },
-    });
+  // Validate input coordinates
+  if (typeof location_lat !== 'number' || typeof location_lng !== 'number' ||
+      typeof destination_lat !== 'number' || typeof destination_lng !== 'number') {
+    return next(new AppError({
+      english: "Invalid or missing coordinates provided.",
+      arabic: "إحداثيات غير صالحة أو مفقودة.",
+    }, 400));
   }
+
+  const location = { lat: location_lat, lon: location_lng };
+  const destination = { lat: destination_lat, lon: destination_lng };
+
+  let coreTaxi;
+  try {
+      coreTaxi = new TaxiLine(location, destination);
+  } catch (err) {
+      // Catch constructor errors (e.g., invalid lat/lon types)
+      return next(new AppError({
+          english: `Failed to initialize taxi route: ${err.message}`,
+          arabic: `فشل تهيئة مسار التاكسي: ${err.message}`,
+      }, 400));
+  }
+
+  // Calculate the route
+  const routeData = await coreTaxi.calculateRoute(); // No options needed, defaults are fine
+
+  if (!routeData) {
+    return next(new AppError({
+      english: "Could not calculate a taxi route for the given locations.",
+      arabic: "لم يتم العثور على مسار تاكسي للمواقع المحددة.",
+    }, 404)); // 404 might be more appropriate if no route exists
+  }
+
+  // Get relevant data using the class methods
+  const distance = coreTaxi.getDistance();
+  const duration = coreTaxi.getDuration();
+  const geometry = coreTaxi.getGeometry(); // GeoJSON LineString object or null
+  const intersectionData = coreTaxi.getIntersectingNeighborhoods(); // { count, names } or null
+  const price = coreTaxi.getRoutePrice();
+
+  // Prepare the result object
+  const result = {
+    distance_meters: distance,
+    duration_seconds: duration,
+    price_egp: price,
+    route_geometry: geometry, // Includes coordinates: geometry.coordinates
+    intersecting_neighborhoods: intersectionData || { count: 0, names: [] }, // Provide default if null
+  };
+
+  // Store result for potential use in createJourney middleware
+  res.locals.pathResult = result;
+  res.locals.transport = 'taxi'; // Set transport type
+
+  // Send response immediately or call next() if createJourney follows
+  // Option 1: Send response directly
+  res.status(200).json({
+    status: "success",
+    message: { // Changed from 'massage'
+      english: "Taxi search completed successfully",
+      arabic: "تم البحث عن تاكسي بنجاح",
+    },
+    data: {
+      result: result,
+    },
+  });
+
+  // Option 2: Call next() to proceed to createJourney (if it's chained)
+  // next();
 });
