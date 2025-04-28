@@ -12,6 +12,7 @@
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "@mapbox/polyline": "^1.2.1",
+    "@turf/turf": "^7.2.0",
     "@tyriar/fibonacci-heap": "^2.0.9",
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.7.4",
