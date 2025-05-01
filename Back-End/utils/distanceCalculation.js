@@ -44,7 +44,7 @@ function findNearestNodes(nodes, location, nodesMap) {
   const nearstNodes = nodes.reduce((acc, node) => {
     const distanceToCurrent = heuristic(location, node);
 
-      acc[node.name] = { node, distance: distanceToCurrent };
+    acc[node.name] = { node, distance: distanceToCurrent };
 
     return acc;
   }, {});
@@ -54,7 +54,7 @@ function findNearestNodes(nodes, location, nodesMap) {
 }
 
 
-function aStar(pointsLocation, tilePoints, startNodes, endNodes, location, destination, busFee = 5, walkingWeight = -10, busChangeWeight = 100) {
+function aStar(pointsLocation, tilePoints, startNodes, endNodes, location, destination, busFee = 5, walkingWeight = 85, busChangeWeight = 100) {
   try {
     const pq = new FibonacciHeap(); // Fibonacci heap for open set
     const nodeHandles = {}; // To store handles for updating priorities
@@ -104,7 +104,6 @@ function aStar(pointsLocation, tilePoints, startNodes, endNodes, location, desti
         continue;
       }
       currentNode.closed = true;
-      console.log(`Current node: ${currentNode.id}, fScore: ${currentNode.fScore}`);
 
 
       if (endNode.some(end => end.id === currentNode.id)) {
@@ -119,6 +118,7 @@ function aStar(pointsLocation, tilePoints, startNodes, endNodes, location, desti
           ],
         });
         while (true) {
+          console.log(`Type: ${tempNode.type}`);
           if (tempNode.previous && tempNode.type === "walk") {
             coordinates.unshift([tempNode.lat, tempNode.lng]);
             totalPath.push({
@@ -167,28 +167,26 @@ function aStar(pointsLocation, tilePoints, startNodes, endNodes, location, desti
       }
 
       // See if it's walkable from you point
-      for (const point of startNode) {
+      for (const point of endNode) {
+        console.log("End node:", point.id);
         if (point.closed) {
           continue;
         }
         const tentativeGScore = currentNode.gScore + heuristic(currentNode, point) * walkingWeight;
-
 
         if (!nodeHandles[point.id]) {
           nodeHandles[point.id] = pq.insert(nodes[point.id].fScore, nodes[point.id]);
         } else if (nodes[point.id].gScore < tentativeGScore) {
           continue; // this path is not better
         }
+
         nodes[point.id].gScore = tentativeGScore;
-        nodes[point.id].hScore = Math.min(
-          ...endNode.map(end => heuristic(nodes[neighborId], end))
-        );
+        nodes[point.id].hScore = heuristic(currentNode, point);
         nodes[point.id].fScore = nodes[point.id].gScore + nodes[point.id].hScore;
         nodes[point.id].type = "walk";
         nodes[point.id].previous = currentNode;
         pq.decreaseKey(nodeHandles[point.id], nodes[point.id].fScore);
       }
-
 
 
       currentNode.neighbors = getNeighboringPoints(currentNode.lat, currentNode.lng, tilePoints);
