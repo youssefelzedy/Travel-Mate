@@ -24,7 +24,7 @@ class BusLine {
   }
 
   // This method is intended to process the graph data for the bus line.
-  _processGraph(pointsRelation, pointsLocation, tilePoints) {
+  _processGraph(pointsLocation, tilePoints) {
 
     // Implement the logic to process the graph data.
     // This may involve creating nodes, edges, and calculating distances.
@@ -33,12 +33,7 @@ class BusLine {
     const startNode = this.neighborPointsLocation;
     const endNode = this.neighborPointsDestination;
 
-    const current = {
-      lat: this.location.lat,
-      lng: this.location.lng,
-    };
-
-    const result = aStar(pointsRelation, pointsLocation, tilePoints, current, startNode, endNode);
+    const result = aStar(pointsLocation, tilePoints, startNode, endNode, this.location, this.destination);
     console.log("Result:", result);
     this.finalResult = result;
     
@@ -66,7 +61,6 @@ class BusLine {
       this.tilePoints
     );
 
-
     if (this.neighborPointsLocation.length === 0) {
       throw new Error("Location not found");
     }
@@ -83,15 +77,11 @@ class BusLine {
     }
 
 
-    // Process the graph
-    const pointsRelation = await this.loadData(
-      "storage/relations_with_dis-and-fee.json"
-    );
 
     const pointsLocation = await this.loadData(
       "storage/roads-locations.json"
     );
-    this._processGraph(pointsRelation, pointsLocation, this.tilePoints);
+    this._processGraph(pointsLocation, this.tilePoints);
 
     // Prepare the result
     this._preparingResult();
