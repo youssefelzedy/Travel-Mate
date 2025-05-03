@@ -7,11 +7,7 @@ export const RoutingControl = ({ path }) => {
 
     useEffect(() => {
         const control = L.Routing.control({
-            waypoints: path.map(coord => L.latLng(coord)),
-            router: L.Routing.osrmv1({
-                serviceUrl:
-                    "https://routing.openstreetmap.de/routed-car/route/v1",
-            }),
+            waypoints: path.map(([lng, lat]) => L.latLng(lat, lng)), // Reverse coordinates
             lineOptions: {
                 styles: [{ color: "red", opacity: 0.8, weight: 5 }],
             },

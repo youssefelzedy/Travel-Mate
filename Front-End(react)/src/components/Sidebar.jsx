@@ -34,10 +34,6 @@ const Sidebar = () => {
                 return <i className="fas fa-walking"></i>;
             case "bus":
                 return <i className="fas fa-bus"></i>;
-            case "train":
-                return <i className="fas fa-train"></i>;
-            case "car":
-                return <i className="fas fa-car"></i>;
             default:
                 return <i className="fas fa-flag"></i>;
         }
@@ -183,17 +179,6 @@ const Sidebar = () => {
                                                             segment.coordinates
                                                                 .length - 1
                                                         ][1].toFixed(6)}
-                                                    </span>
-                                                </div>
-                                                <div className="segment-point">
-                                                    <span className="point-label">
-                                                        Points:
-                                                    </span>
-                                                    <span className="point-value">
-                                                        {
-                                                            segment.coordinates
-                                                                .length
-                                                        }
                                                     </span>
                                                 </div>
                                             </div>

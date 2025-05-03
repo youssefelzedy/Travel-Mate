@@ -44,6 +44,27 @@ body::-webkit-scrollbar {
 /* location button */
 .current-location-button {
     position: absolute;
+    bottom: 100px;
+    right: 20px;
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* location button */
+.clear-button {
+    position: absolute;
     bottom: 50px;
     right: 20px;
     z-index: 1000;
@@ -84,17 +105,72 @@ body::-webkit-scrollbar {
     color: red;
 }
 
+/* Centered get-route-button */
 .get-route-button {
     position: absolute;
-    bottom: 50px;
+    bottom: 20px;
     left: 50%;
-    z-index: 1000;
-    padding: 10px 20px;
-    background: red;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    background-color: #007bff;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 25px;
     cursor: pointer;
-
+    font-weight: bold;
     font-size: 1.5rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    z-index: 1000;
+    text-align: center;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Hover effect for get-route-button */
+.get-route-button:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Toggle buttons container */
+.toggle-car-container {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    background-color: #fff;
+    border-radius: 30px;
+    overflow: hidden;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Toggle button styles */
+.toggle-car-button {
+    padding: 15px 30px;
+    background-color: transparent;
+    color: #007bff;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 1.2rem;
+    outline: none;
+}
+
+/* Active button style */
+.toggle-car-button.active {
+    color: #fff;
+    background-color: #007bff;
 }
