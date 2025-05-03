@@ -7,11 +7,11 @@ export const RoutingControl = ({ path }) => {
 
     useEffect(() => {
         const control = L.Routing.control({
-            waypoints: path.map(coord => L.latLng(coord)),
+            waypoints: path.map(([lng, lat]) => L.latLng(lat, lng)), // Reverse coordinates
             lineOptions: {
                 styles: [{ color: "red", opacity: 0.8, weight: 5 }],
             },
-            // createMarker: () => null,
+            createMarker: () => null,
             addWaypoints: false,
             show: false,
             fitSelectedRoutes: false,
