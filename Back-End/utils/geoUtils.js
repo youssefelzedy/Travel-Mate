@@ -1,10 +1,10 @@
 // Extracted getNeighboringPoints function to resolve circular dependency
-function getNeighboringPoints(lat, lng, tilePoints, step = 1, depth = 7, tileSize = 256, zoom = 18) {
+function getNeighboringPoints(lat, lng, tilePoints, range = 0, tileSize = 256, zoom = 18) {
   const pointLocation = projectLatLng(lat, lng, tileSize, zoom);
   const tileX = Math.floor(pointLocation.x / tileSize);
   const tileY = Math.floor(pointLocation.y / tileSize);
 
-  const neighborPoints = _getTile(tilePoints, tileX, tileY, step, depth);
+  const neighborPoints = _getTile(tilePoints, tileX, tileY, range);
 
   if (neighborPoints.length === 0) {
     throw new Error("Location not found");
@@ -13,40 +13,19 @@ function getNeighboringPoints(lat, lng, tilePoints, step = 1, depth = 7, tileSiz
   return neighborPoints;
 }
 
-function _getTile(tilePoints, tileX, tileY, step = 4, depth = 10, start = 0, end = 1, visited = new Set()) {
+function _getTile(tilePoints, tileX, tileY, range) {
   const neighbors = [];
-  const directions = [
-    [0, -1], // Up
-    [-1, 0], // Left
-    [0, 1],  // Down
-    [1, 0],  // Right
-    [-1, -1], // Top-left corner
-    [-1, 1],  // Bottom-left corner
-    [1, -1],  // Top-right corner
-    [1, 1],   // Bottom-right corner
-  ];
 
-  for (let r = start; r <= end; r++) {
-    for (const [dx, dy] of directions) {
-      const nx = tileX + dx * r;
-      const ny = tileY + dy * r;
-      const neighborKey = `${nx},${ny}`;
-
-      if (!visited.has(neighborKey)) {
-        visited.add(neighborKey);
-        if (tilePoints[neighborKey]) {
-          neighbors.push(...tilePoints[neighborKey]);
-        }
-      }
+  // Iterate over the grid of neighboring tiles based on the range
+  for (let dx = -range; dx <= range; dx++) {
+    for (let dy = -range; dy <= range; dy++) {
+      const neighborKey = `${tileX + dx},${tileY + dy}`;
+      if (tilePoints[neighborKey])
+        neighbors.push(...tilePoints[neighborKey]);
     }
   }
 
   if (neighbors.length === 0) {
-    if (range < depth) {
-      start = end + 1;
-      end += step;
-      return _getTile(tilePoints, tileX, tileY, step, depth, start, end, visited);
-    }
     return [];
   }
 
@@ -88,7 +67,38 @@ function projectLatLng(lat, lng, tileSize = 256, zoom = 18) {
 }
 
 
+function heuristic(NodeA, NodeB) {
+  // Haversine formula to calculate the distance between two points on the Earth
+  const { lat: lat1, lng: lng1 } = NodeA;
+  const { lat: lat2, lng: lng2 } = NodeB;
+  const R = 6371; // Radius of Earth in km
+  const toRad = x => (x * Math.PI) / 180;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) ** 2;
+
+  // Return the distance in kilometers
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function assignPointsToTiles(tilePoints, stop) {
+  const tileSize = 256;
+
+  const pointLocation = projectLatLng(stop.lat, stop.lng);
+  const tileX = Math.floor(pointLocation.x / tileSize);
+  const tileY = Math.floor(pointLocation.y / tileSize);
+  const tileKey = `${tileX},${tileY}`;
+
+  if (!tilePoints[tileKey]) {
+    tilePoints[tileKey] = [];
+  }
+
+  tilePoints[tileKey].push({ id: stop.id, lat: stop.lat, lng: stop.lng, name: stop.name, type: stop.type });
+}
 
 
-
-module.exports = { getNeighboringPoints, projectLatLng };
+module.exports = { getNeighboringPoints, projectLatLng, heuristic, assignPointsToTiles };

@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "publish": "nodemon server.js",
-    "start": "nodemon server.js"
+    "dev": "nodemon server.js"
   },
   "author": "youssef salah",
   "license": "ISC",
