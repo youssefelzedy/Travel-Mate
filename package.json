@@ -1,5 +1,12 @@
 {
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix Back-End\" \"npm run dev --prefix Front-End\""
+  },
+
   "dependencies": {
     "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

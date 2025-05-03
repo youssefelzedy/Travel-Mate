@@ -157,24 +157,34 @@ exports.searchMicrobus = catchAsync(async (req, res, next) => {
   const destination_lat = req.body.destination.lat;
   const destination_lng = req.body.destination.lng;
 
+  // Validate input coordinates
+  if (typeof location_lat !== 'number' || typeof location_lng !== 'number' ||
+    typeof destination_lat !== 'number' || typeof destination_lng !== 'number') {
+    return next(new AppError({
+      english: "Invalid or missing coordinates provided.",
+      arabic: "إحداثيات غير صالحة أو مفقودة.",
+    }, 400));
+  }
   const location = { lat: location_lat, lng: location_lng };
   const destination = { lat: destination_lat, lng: destination_lng };
-
   const coreMicrobus = new microbus(location, destination);
+
 
   coreMicrobus.initializeData()
     .then(() => {
-      coreMicrobus._preparingResult();
       res.locals.pathResult = coreMicrobus.finalResult;
+      console.log("PATH:", coreMicrobus.finalResult);
       next();
     })
     .catch((err) => {
       next(new AppError({
-        english: "Microbus search failed",
-        arabic: "فشل البحث عن ميكروباص",
+        english: `Microbus search failed: ${err.message}`,
+        arabic: `فشل البحث عن ميكروباص: ${err.message}`,
       }, 400));
-      
+
     });
+
+
 });
 
 exports.searchTaxi = catchAsync(async (req, res, next) => {
@@ -185,7 +195,7 @@ exports.searchTaxi = catchAsync(async (req, res, next) => {
 
   // Validate input coordinates
   if (typeof location_lat !== 'number' || typeof location_lng !== 'number' ||
-      typeof destination_lat !== 'number' || typeof destination_lng !== 'number') {
+    typeof destination_lat !== 'number' || typeof destination_lng !== 'number') {
     return next(new AppError({
       english: "Invalid or missing coordinates provided.",
       arabic: "إحداثيات غير صالحة أو مفقودة.",
