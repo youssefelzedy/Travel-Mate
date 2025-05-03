@@ -5,6 +5,7 @@ const AppError = require(`${__dirname}/../utils/appError`);
 const e = require("express");
 const microbus = require(`${__dirname}/../utils/microBus`);
 const TaxiLine = require(`${__dirname}/../utils/taxi`); // Renamed import for clarity
+const LocationInfo = require(`${__dirname}/../utils/location_info`); // Import LocationInfo
 
 exports.getAllJourneys = catchAsync(async (req, res, next) => {
   const journeys = await Journey.find();
@@ -195,40 +196,73 @@ exports.searchTaxi = catchAsync(async (req, res, next) => {
   const destination = { lat: destination_lat, lon: destination_lng };
 
   let coreTaxi;
+  let startLocationInfo;
+  let endLocationInfo;
+
   try {
       coreTaxi = new TaxiLine(location, destination);
+      startLocationInfo = new LocationInfo(location); // Create LocationInfo for start
+      endLocationInfo = new LocationInfo(destination); // Create LocationInfo for end
   } catch (err) {
       // Catch constructor errors (e.g., invalid lat/lon types)
       return next(new AppError({
-          english: `Failed to initialize taxi route: ${err.message}`,
-          arabic: `فشل تهيئة مسار التاكسي: ${err.message}`,
+          english: `Failed to initialize route or location info: ${err.message}`,
+          arabic: `فشل تهيئة المسار أو معلومات الموقع: ${err.message}`,
       }, 400));
   }
 
-  // Calculate the route
-  const routeData = await coreTaxi.calculateRoute(); // No options needed, defaults are fine
+  // Calculate the route AND fetch nearest location info concurrently
+  const [routeData, startInfoData, endInfoData] = await Promise.all([
+      coreTaxi.calculateRoute(), // No options needed, defaults are fine
+      startLocationInfo.fetchNearestInfo(),
+      endLocationInfo.fetchNearestInfo()
+  ]);
 
+  // --- Handle Route Calculation Failure ---
   if (!routeData) {
+    // Log location info fetch errors if they occurred, but prioritize route failure
+    if (!startInfoData) console.warn("Failed to fetch start location info:", startLocationInfo.getError()?.message);
+    if (!endInfoData) console.warn("Failed to fetch end location info:", endLocationInfo.getError()?.message);
+
     return next(new AppError({
       english: "Could not calculate a taxi route for the given locations.",
       arabic: "لم يتم العثور على مسار تاكسي للمواقع المحددة.",
     }, 404)); // 404 might be more appropriate if no route exists
   }
 
-  // Get relevant data using the class methods
+  // --- Get Route Data ---
   const distance = coreTaxi.getDistance();
   const duration = coreTaxi.getDuration();
   const geometry = coreTaxi.getGeometry(); // GeoJSON LineString object or null
   const intersectionData = coreTaxi.getIntersectingNeighborhoods(); // { count, names } or null
   const price = coreTaxi.getRoutePrice();
 
-  // Prepare the result object
+  // --- Get Location Info Data (handle potential fetch failures gracefully) ---
+  const startInfo = startInfoData ? {
+      name: startLocationInfo.getName(),
+      snapped_coordinates_lon_lat: startLocationInfo.getSnappedCoordinates(),
+      distance_to_street_meters: startLocationInfo.getDistanceToStreet()
+  } : { error: "Failed to fetch start location details", message: startLocationInfo.getError()?.message };
+
+  const endInfo = endInfoData ? {
+      name: endLocationInfo.getName(),
+      snapped_coordinates_lon_lat: endLocationInfo.getSnappedCoordinates(),
+      distance_to_street_meters: endLocationInfo.getDistanceToStreet()
+  } : { error: "Failed to fetch end location details", message: endLocationInfo.getError()?.message };
+
+
+  // --- Prepare the result object ---
   const result = {
+    // Route details
     distance_meters: distance,
     duration_seconds: duration,
     price_egp: price,
     route_geometry: geometry, // Includes coordinates: geometry.coordinates
     intersecting_neighborhoods: intersectionData || { count: 0, names: [] }, // Provide default if null
+
+    // Location details
+    start_location_info: startInfo,
+    end_location_info: endInfo,
   };
 
   // Store result for potential use in createJourney middleware

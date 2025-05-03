@@ -54,3 +54,6 @@ For any questions or suggestions, please contact us at.
 - Youssef Salah : youssefsalah22072002@gmail.com
 - Mohamed Hamdy : mmhamdyyy@gmail.com
 - Ramy Yasser : ramy.yasser21102@gmail.com
+- Abdelrahman Magdi : abdomagdi300@gmail.com
+- Salah Swefy : salahm.swefy@gmail.com
+- Saad Samir : saadsamir7177@gmail.com
