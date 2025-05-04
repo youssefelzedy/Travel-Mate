@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getApiTaxi } from "../services/apiPath";
 import toast from "react-hot-toast";
 
 export function useTaxi({ location, destination }) {
+    const queryClient = useQueryClient();
     const {
         isLoading,
         mutate: getTaxi,
@@ -14,7 +15,8 @@ export function useTaxi({ location, destination }) {
         onMutate: () => {
             toast.loading("Finding road...");
         },
-        onSuccess: () => {
+        onSuccess: data => {
+            queryClient.setQueryData(["taxi"], data);
             toast.success("Road found successfully");
         },
         onError: error => {

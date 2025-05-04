@@ -190,6 +190,17 @@
   line-height: 1.4;
 }
 
+.coordinates {
+  font-size: 12px;
+  /* Smaller font size */
+  color: #64748b;
+  /* Muted color for coordinates */
+  margin-top: 4px;
+  /* Add spacing between the street name and coordinates */
+  display: block;
+  /* Ensure it appears on a new line */
+}
+
 /* Timeline Styles */
 .timeline {
   position: relative;
@@ -218,12 +229,15 @@
 .timeline-item:nth-child(1) {
   --index: 1;
 }
+
 .timeline-item:nth-child(2) {
   --index: 2;
 }
+
 .timeline-item:nth-child(3) {
   --index: 3;
 }
+
 .timeline-item:nth-child(4) {
   --index: 4;
 }
@@ -344,11 +358,13 @@
 }
 
 .point-label {
-  width: 65px;
-  font-weight: 400;
-  color: #64748b;
+  width: 100%;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
   letter-spacing: 0.1px;
   line-height: 1.4;
+  text-transform: capitalize;
 }
 
 .point-value {
