@@ -37,13 +37,12 @@ function pathReconstruction(endNode, startNode, busFee) {
 
     // Check if we're changing type (e.g., from walk to bus) or bus line
     const typeChanged = tempNode.type !== segment.type;
-    const busChanged = tempNode.name !== segment.name && tempNode.type === "bus";
+    console.log("Current segment:", segment.type, tempNode.type, tempNode.lat, tempNode.lng);
 
-    if (typeChanged || busChanged) {
+    if (typeChanged) {
       // Push current segment and start a new one
       segment.coordinates.push([tempNode.lat, tempNode.lng]);
       segments.push(segment);
-
       segment = {
         type: tempNode.type,
         name: tempNode.name,
@@ -53,15 +52,15 @@ function pathReconstruction(endNode, startNode, busFee) {
 
     segment.coordinates.push([tempNode.lat, tempNode.lng]);
     if (tempNode.id === startNode.id) {
-      segment.type = "walk"; // Set the type to walk for the start node
-      segment.name = "start"; // Set the name to start for the start node
+      segment.type = startNode.type; // Set the type to start for the start node
+      segment.name = startNode.name; // Set the name to start for the start node
       break; // Reached the start node
     }
   }
 
   // Push the final segment
   segments.push(segment);
-
+  
   // Reverse all coordinate arrays and the segment list to get start-to-end order
   const totalPath = segments.reverse().map(seg => ({
     ...seg,
@@ -107,13 +106,13 @@ function processNextNode(currentNode, nextNode, end, nodeHandles, pq, walkingWei
   }
 }
 
-function aStar(pointsLocation, tilePoints, location, destination, busFee = 5, walkingWeight = 3, busChangeWeight = 5) {
+function aStar(pointsLocation, tilePoints, location, destination, busFee = 5, walkingWeight = 10, busChangeWeight = 2) {
   try {
     const pq = new FibonacciHeap(); // Fibonacci heap for open set
     const nodeHandles = new Map(); // To store handles for updating priorities
     const nodes = {}; // To store nodes
 
-    const start = new Node(location.lat, location.lng, "start", "walk");
+    const start = new Node(location.lat, location.lng, "start", "walk", 0);
     const end = new Node(destination.lat, destination.lng, "end", "walk");
 
     nodes[start.id] = start;
@@ -125,10 +124,10 @@ function aStar(pointsLocation, tilePoints, location, destination, busFee = 5, wa
     pointsLocation.forEach(road => {
       let previousNode = null;
       road.path.forEach((point) => {
-        const { lat, lng, type } = point;
+        const { lat, lng } = point;
         const id = `${lat},${lng}`;
         if (!nodes[id]) {
-          nodes[id] = new Node(lat, lng, road.name, type);
+          nodes[id] = new Node(lat, lng, road.name, road.type);
         }
         if (previousNode) {
           nodes[previousNode.id].next = nodes[id];
@@ -140,14 +139,9 @@ function aStar(pointsLocation, tilePoints, location, destination, busFee = 5, wa
 
 
     // Initialize the start node
-    start.gScore = 0;
-    start.hScore = heuristic(start, end) * walkingWeight;
+    start.hScore = heuristic(start, end);
     start.fScore = start.gScore + start.hScore;
-    start.type = "walk";
     nodeHandles[start.id] = pq.insert(start.fScore, start);
-
-    // Initialize the end node
-    nodes[end.id].type = "walk";
 
     // Start the search
     while (!pq.isEmpty()) {
