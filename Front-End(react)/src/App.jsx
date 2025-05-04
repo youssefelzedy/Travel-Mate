@@ -1,10 +1,10 @@
+import "./styles/style.css";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import "./styles/style.css";
+import { Toaster } from "react-hot-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "react-hot-toast";
-import { CarTypeProvider } from "./context/CarTypeContext";
+import { UserDataProvider } from "./context/UserDataContext";
 import AppLayout from "./ui/AppLayout";
 import ErrorBoundary from "./ui/ErrorBoundary";
 
@@ -24,9 +24,9 @@ function App() {
                 buttonPosition="bottom-left"
             />
             <ErrorBoundary>
-                <CarTypeProvider>
+                <UserDataProvider>
                     <AppLayout />
-                </CarTypeProvider>
+                </UserDataProvider>
             </ErrorBoundary>
             <Toaster
                 position="top-center"

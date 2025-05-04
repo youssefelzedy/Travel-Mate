@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { getApiTaxi } from "../services/apiPath";
 import toast from "react-hot-toast";
 
-export function useTaxi() {
+export function useTaxi({ location, destination }) {
     const {
         isLoading,
         mutate: getTaxi,
@@ -10,7 +10,7 @@ export function useTaxi() {
     } = useMutation({
         mutationFn: ({ location, destination }) =>
             getApiTaxi({ location, destination }),
-        mutationKey: ["taxi", "location", "destination"],
+        mutationKey: ["taxi", location, destination],
         onMutate: () => {
             toast.loading("Finding road...");
         },

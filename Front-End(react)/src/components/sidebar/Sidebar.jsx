@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { data } from "../utils/data";
-import "../styles/sidebar.css";
+import "../../styles/sidebar.css";
+import { useEffect, useState } from "react";
+import { useMicroBus } from "../useMicroBus";
+import { useUserData } from "../../context/UserDataContext";
 
 // Load FontAwesome for icons
 const FontAwesomeCDN = () => (
@@ -14,8 +15,23 @@ const FontAwesomeCDN = () => (
 );
 
 const Sidebar = () => {
-    const { journey, pathResult } = data;
     const [isVisible, setIsVisible] = useState(false);
+    const { location, destination } = useUserData();
+    const { data: microbusData } = useMicroBus({ location, destination });
+    const journey = microbusData?.data?.journey || null;
+    const pathResult = microbusData?.data?.pathResult || null;
+    console.log("microbusData", microbusData);
+    console.log("location", location);
+    console.log("destination", destination);
+
+    console.log("journey", journey);
+    console.log("pathResult", pathResult);
+
+    useEffect(() => {
+        if (journey) {
+            setIsVisible(true);
+        }
+    }, [journey]);
 
     // Function to toggle sidebar visibility
     const toggleSidebar = () => {
@@ -23,38 +39,38 @@ const Sidebar = () => {
     };
 
     // Function to format coordinates for display
-    const formatCoords = coords => {
-        return `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
-    };
+    // const formatCoords = coords => {
+    //     return `${coords[0]}, ${coords[1]}`;
+    // };
 
-    // Function to get transportation icon based on type
-    const getTransportIcon = type => {
-        switch (type) {
-            case "walk":
-                return <i className="fas fa-walking"></i>;
-            case "bus":
-                return <i className="fas fa-bus"></i>;
-            default:
-                return <i className="fas fa-flag"></i>;
-        }
-    };
+    // // Function to get transportation icon based on type
+    // const getTransportIcon = type => {
+    //     switch (type) {
+    //         case "walk":
+    //             return <i className="fas fa-walking"></i>;
+    //         case "bus":
+    //             return <i className="fas fa-bus"></i>;
+    //         default:
+    //             return <i className="fas fa-flag"></i>;
+    //     }
+    // };
 
-    // Function to render the appropriate line style based on the current segment's type
-    const renderTimelineLine = currentType => {
-        if (currentType === "walk") {
-            return (
-                <div className="timeline-dashed">
-                    {[...Array(5)].map((_, dotIndex) => (
-                        <span key={dotIndex} className="dash-dot"></span>
-                    ))}
-                </div>
-            );
-        } else if (currentType === "bus") {
-            return <div className="timeline-line bold"></div>;
-        } else {
-            return <div className="timeline-line"></div>;
-        }
-    };
+    // // Function to render the appropriate line style based on the current segment's type
+    // const renderTimelineLine = currentType => {
+    //     if (currentType === "walk") {
+    //         return (
+    //             <div className="timeline-dashed">
+    //                 {[...Array(5)].map((_, dotIndex) => (
+    //                     <span key={dotIndex} className="dash-dot"></span>
+    //                 ))}
+    //             </div>
+    //         );
+    //     } else if (currentType === "bus") {
+    //         return <div className="timeline-line bold"></div>;
+    //     } else {
+    //         return <div className="timeline-line"></div>;
+    //     }
+    // };
 
     return (
         <div className="sidebar-container">
@@ -64,6 +80,7 @@ const Sidebar = () => {
                     <i className="fas fa-chevron-right"></i>
                 </button>
             )}
+
             {isVisible && (
                 <div className="sidebar">
                     <div className="sidebar-header">
@@ -75,7 +92,7 @@ const Sidebar = () => {
                         </button>
                     </div>
 
-                    <div className="journey-info">
+                    {/* <div className="journey-info">
                         <div className="info-section">
                             <h3>Journey Overview</h3>
                             <div className="overview-card">
@@ -88,7 +105,7 @@ const Sidebar = () => {
                                             Start Location:
                                         </span>
                                         <span className="value">
-                                            {formatCoords(journey.location)}
+                                            {location}
                                         </span>
                                     </div>
                                 </div>
@@ -187,7 +204,7 @@ const Sidebar = () => {
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             )}
         </div>

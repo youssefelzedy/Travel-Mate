@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import {
     MapContainer,
     TileLayer,
@@ -13,30 +13,40 @@ import { FaBus, FaMapMarkerAlt, FaRoad, FaTaxi } from "react-icons/fa";
 import { RiResetLeftLine } from "react-icons/ri";
 
 // import FitBounds from "./FitBounds";
-import RedIcon from "../ui/RedIcon";
-import DeleteButton from "../ui/DeleteButton";
+import RedIcon from "../../ui/RedIcon";
+import DeleteButton from "../../ui/DeleteButton";
 import { ClickHandler } from "./ClickHandler";
 import { RoutingControl } from "./RoutingControl";
-import { useMicroBus } from "./useMicroBus";
-import { useTaxi } from "./useTaxi";
-import { useCarType } from "../context/CarTypeContext";
+import { useMicroBus } from "../useMicroBus";
+import { useTaxi } from "../useTaxi";
+import { useUserData } from "../../context/UserDataContext";
 
 const MyMap = () => {
-    const [location, setLocation] = useState(null);
-    const [destination, setDestination] = useState(null);
-    const { carType, setCarType } = useCarType();
+    const {
+        carType,
+        setCarType,
+        location,
+        setLocation,
+        destination,
+        setDestination,
+    } = useUserData();
+
     const locationRef = useRef(null);
     const destinationRef = useRef(null);
 
-    // eslint-disable-next-line no-unused-vars
-    const { getMicrobus, data: dataMicroBus } = useMicroBus();
-    const { getTaxi, data: dataTaxi } = useTaxi();
+    const { getMicrobus, data: dataMicroBus } = useMicroBus({
+        location,
+        destination,
+    });
+
+    const { getTaxi, data: dataTaxi } = useTaxi({ location, destination });
 
     const handleClear = e => {
         e.stopPropagation();
         setLocation(null);
         setDestination(null);
     };
+
     const updateMarkerPosition = (markerRef, setter) => {
         if (markerRef.current) {
             const { lat, lng } = markerRef.current.getLatLng();
@@ -44,6 +54,7 @@ const MyMap = () => {
         }
     };
 
+    // Function to get the current locations
     const handleGetCurrentLocation = e => {
         e.stopPropagation();
         if (!navigator.geolocation) {
@@ -87,34 +98,12 @@ const MyMap = () => {
 
             <MapContainer
                 center={location || [31.2662163606, 32.2821235657]}
-                zoom={14}
+                zoom={15}
                 style={{ height: "100vh", width: "100%", position: "absolute" }}
                 zoomControl={false}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <ZoomControl position="topright" />
-                {/* microbus */}
-                {/* {data?.data?.pathResult.totalPath.map((path, index) => {
-                    if (path.type === "walk") {
-                        return (
-                            <Polyline
-                                key={index}
-                                positions={path.coordinates}
-                                pathOptions={{
-                                    color: "gray",
-                                    weight: 3,
-                                    opacity: 0.7,
-                                    dashArray: "5, 5",
-                                }}></Polyline>
-                        );
-                    } else {
-                        return (
-                            <RoutingControl
-                                key={index}
-                                path={path.coordinates}
-                            />
-                        );
-                    }
-                })} */}
+
                 {dataTaxi &&
                     location &&
                     destination &&
@@ -122,6 +111,26 @@ const MyMap = () => {
                         (path, index) => (
                             <RoutingControl key={index} path={path} />
                         )
+                    )}
+
+                {dataMicroBus &&
+                    location &&
+                    destination &&
+                    dataMicroBus?.data?.pathResult.totalPath.map(
+                        (path, index) =>
+                            path.type === "walk" ? (
+                                <Polyline
+                                    key={index}
+                                    pathOptions={{
+                                        color: "gray",
+                                        weight: 5,
+                                        opacity: 0.8,
+                                    }}
+                                    positions={path.coordinates}
+                                />
+                            ) : (
+                                <RoutingControl key={index} path={path} />
+                            )
                     )}
 
                 <ClickHandler

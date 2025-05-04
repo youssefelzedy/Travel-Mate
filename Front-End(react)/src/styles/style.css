@@ -29,6 +29,11 @@ body::-webkit-scrollbar {
     flex-direction: column;
     gap: 10px;
     border: none;
+    outline: none;
+}
+
+.leaflet-touch .leaflet-bar {
+    border: none !important;
 }
 
 .leaflet-right .leaflet-control-zoom a {
