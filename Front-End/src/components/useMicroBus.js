@@ -16,8 +16,7 @@ export function useMicroBus({ location, destination }) {
             toast.loading("Finding road...");
         },
         onSuccess: data => {
-            // Save the data in the query cache
-            queryClient.setQueryData(["microbus", location, destination], data);
+            queryClient.setQueryData(["microbus"], data);
             toast.success("Road found successfully");
         },
         onError: error => {

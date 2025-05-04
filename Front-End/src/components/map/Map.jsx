@@ -20,6 +20,7 @@ import { RoutingControl } from "./RoutingControl";
 import { useMicroBus } from "../useMicroBus";
 import { useTaxi } from "../useTaxi";
 import { useUserData } from "../../context/UserDataContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MyMap = () => {
     const {
@@ -38,11 +39,12 @@ const MyMap = () => {
         location,
         destination,
     });
-
     const { getTaxi, data: dataTaxi } = useTaxi({ location, destination });
+    const queryClient = useQueryClient();
 
     const handleClear = e => {
         e.stopPropagation();
+        queryClient.clear();
         setLocation(null);
         setDestination(null);
     };
@@ -104,14 +106,14 @@ const MyMap = () => {
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <ZoomControl position="topright" />
 
-                {dataTaxi &&
-                    location &&
-                    destination &&
-                    [dataTaxi?.data?.result?.route_geometry.coordinates].map(
-                        (path, index) => (
-                            <RoutingControl key={index} path={path} />
-                        )
-                    )}
+                {dataTaxi && location && destination && (
+                    <RoutingControl
+                        key={location}
+                        path={
+                            dataTaxi?.data?.result?.route_geometry.coordinates
+                        }
+                    />
+                )}
 
                 {dataMicroBus &&
                     location &&
@@ -125,6 +127,7 @@ const MyMap = () => {
                                         color: "gray",
                                         weight: 5,
                                         opacity: 0.8,
+                                        dashArray: "10, 10",
                                     }}
                                     positions={path.coordinates}
                                 />
