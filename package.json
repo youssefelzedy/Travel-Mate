@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix Back-End\" \"npm run dev --prefix 'Front-End(react)'\""
+    "dev": "concurrently \"npm run dev --prefix Back-End\" \"npm run dev --prefix 'Front-End'\""
   },
   "dependencies": {
     "leaflet": "^1.9.4"
