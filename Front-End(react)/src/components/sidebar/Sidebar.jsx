@@ -1,137 +1,211 @@
 import "../../styles/sidebar.css";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useMicroBus } from "../useMicroBus";
 import { useUserData } from "../../context/UserDataContext";
-
-// Load FontAwesome for icons
-const FontAwesomeCDN = () => (
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-        crossOrigin="anonymous"
-        referrerPolicy="no-referrer"
-    />
-);
+import { useNearestStreet } from "../../hooks/useNearestStreet";
+import TimelineItem from "./TimelineItem";
+import {
+    FaChevronLeft,
+    FaChevronRight,
+    FaFlagCheckered,
+    FaMapMarkerAlt,
+    FaMoneyBillAlt,
+} from "react-icons/fa";
+import { GiPathDistance } from "react-icons/gi";
+import { useTaxi } from "../useTaxi";
 
 const Sidebar = () => {
     const [isVisible, setIsVisible] = useState(false);
-    const { location, destination } = useUserData();
-    const { data: microbusData } = useMicroBus({ location, destination });
-    const journey = microbusData?.data?.journey || null;
-    const pathResult = microbusData?.data?.pathResult || null;
-    console.log("microbusData", microbusData);
-    console.log("location", location);
-    console.log("destination", destination);
+    const { location, destination, carType } = useUserData();
+    const { getMicrobus, data: mutationMicrobusData } = useMicroBus({
+        location,
+        destination,
+    });
 
-    console.log("journey", journey);
-    console.log("pathResult", pathResult);
+    const { getTaxi, data: mutationTaxiData } = useTaxi({
+        location,
+        destination,
+    });
+
+    const { data: microbusData } = useQuery({
+        queryKey: ["microbus"],
+        queryFn: ({ location, destination }) =>
+            getMicrobus({ location, destination }),
+        enabled: !!mutationMicrobusData,
+    });
+
+    const pathResult = microbusData?.data?.pathResult || null;
+
+    const { data: taxiData } = useQuery({
+        queryKey: ["taxi"],
+        queryFn: ({ location, destination }) =>
+            getTaxi({ location, destination }),
+        enabled: !!mutationTaxiData,
+    });
+    const taxiResult = taxiData?.data?.result || null;
 
     useEffect(() => {
-        if (journey) {
-            setIsVisible(true);
-        }
-    }, [journey]);
+        if (microbusData || taxiData) setIsVisible(true);
+        else setIsVisible(false);
+    }, [microbusData, taxiData]);
 
-    // Function to toggle sidebar visibility
     const toggleSidebar = () => {
         setIsVisible(!isVisible);
     };
-
-    // Function to format coordinates for display
-    // const formatCoords = coords => {
-    //     return `${coords[0]}, ${coords[1]}`;
-    // };
-
-    // // Function to get transportation icon based on type
-    // const getTransportIcon = type => {
-    //     switch (type) {
-    //         case "walk":
-    //             return <i className="fas fa-walking"></i>;
-    //         case "bus":
-    //             return <i className="fas fa-bus"></i>;
-    //         default:
-    //             return <i className="fas fa-flag"></i>;
-    //     }
-    // };
-
-    // // Function to render the appropriate line style based on the current segment's type
-    // const renderTimelineLine = currentType => {
-    //     if (currentType === "walk") {
-    //         return (
-    //             <div className="timeline-dashed">
-    //                 {[...Array(5)].map((_, dotIndex) => (
-    //                     <span key={dotIndex} className="dash-dot"></span>
-    //                 ))}
-    //             </div>
-    //         );
-    //     } else if (currentType === "bus") {
-    //         return <div className="timeline-line bold"></div>;
-    //     } else {
-    //         return <div className="timeline-line"></div>;
-    //     }
-    // };
+    const { data: startStreet = "Loading...", isError: startError } =
+        useNearestStreet(location?.lat, location?.lng);
+    const { data: endStreet = "Loading...", isError: endError } =
+        useNearestStreet(destination?.lat, destination?.lng);
 
     return (
         <div className="sidebar-container">
-            <FontAwesomeCDN />
-            {!isVisible && (
+            {!isVisible && (microbusData || taxiData) && (
                 <button className="show-button" onClick={toggleSidebar}>
-                    <i className="fas fa-chevron-right"></i>
+                    <FaChevronRight size={16} />
                 </button>
             )}
-
-            {isVisible && (
+            {isVisible && carType === "taxi" && (
                 <div className="sidebar">
                     <div className="sidebar-header">
                         <h2>Travel Details</h2>
                         <button
                             className="toggle-button"
                             onClick={toggleSidebar}>
-                            <i className="fas fa-chevron-left"></i>
+                            <FaChevronLeft size={16} />
+                        </button>
+                    </div>
+                    <div className="info-section">
+                        <h3>Journey Overview</h3>
+                        <div className="overview-card">
+                            <div className="info-item">
+                                <span className="icon">
+                                    <FaMapMarkerAlt size={16} />
+                                </span>
+                                <div className="info-content">
+                                    <span className="label">
+                                        Start Location:
+                                    </span>
+                                    <span className="value">
+                                        {startError
+                                            ? "Error fetching street"
+                                            : startStreet}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="info-item">
+                                <span className="icon">
+                                    <FaFlagCheckered size={16} />
+                                </span>
+                                <div className="info-content">
+                                    <span className="label">Destination:</span>
+                                    <span className="value">
+                                        {endError
+                                            ? "Error fetching street"
+                                            : endStreet}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="info-item">
+                                <span className="icon">
+                                    <FaMoneyBillAlt size={16} />
+                                </span>
+                                <div className="info-content">
+                                    <span className="label">Total Fee:</span>
+                                    <span className="value">
+                                        {taxiResult?.price_egp.toFixed(0)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="info-item">
+                                <span className="icon">
+                                    <GiPathDistance size={16} />
+                                </span>
+                                <div className="info-content">
+                                    <span className="label">
+                                        Total Distance:
+                                    </span>
+                                    <span className="value">
+                                        {(
+                                            taxiResult?.distance_meters / 1000.0
+                                        ).toFixed(3)}{" "}
+                                        KM
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isVisible && carType === "microbus" && (
+                <div className="sidebar">
+                    <div className="sidebar-header">
+                        <h2>Travel Details</h2>
+                        <button
+                            className="toggle-button"
+                            onClick={toggleSidebar}>
+                            <FaChevronLeft size={16} />
                         </button>
                     </div>
 
-                    {/* <div className="journey-info">
+                    <div className="journey-info">
                         <div className="info-section">
                             <h3>Journey Overview</h3>
                             <div className="overview-card">
                                 <div className="info-item">
                                     <span className="icon">
-                                        <i className="fas fa-map-marker-alt"></i>
+                                        <FaMapMarkerAlt size={16} />
                                     </span>
                                     <div className="info-content">
                                         <span className="label">
                                             Start Location:
                                         </span>
                                         <span className="value">
-                                            {location}
+                                            {startError
+                                                ? "Error fetching street"
+                                                : startStreet}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <span className="icon">
-                                        <i className="fas fa-flag-checkered"></i>
+                                        <FaFlagCheckered size={16} />
                                     </span>
                                     <div className="info-content">
                                         <span className="label">
                                             Destination:
                                         </span>
                                         <span className="value">
-                                            {formatCoords(journey.destination)}
+                                            {endError
+                                                ? "Error fetching street"
+                                                : endStreet}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="info-item">
                                     <span className="icon">
-                                        <i className="fas fa-dollar-sign"></i>
+                                        <FaMoneyBillAlt size={16} />
                                     </span>
                                     <div className="info-content">
                                         <span className="label">
                                             Total Fee:
                                         </span>
                                         <span className="value">
-                                            ${pathResult.totalFee.toFixed(2)}
+                                            ${pathResult?.totalFee.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="info-item">
+                                    <span className="icon">
+                                        <GiPathDistance size={16} />
+                                    </span>
+                                    <div className="info-content">
+                                        <span className="label">
+                                            Total Distance:
+                                        </span>
+                                        <span className="value">
+                                            {pathResult?.distance.toFixed(3)} KM
                                         </span>
                                     </div>
                                 </div>
@@ -141,70 +215,22 @@ const Sidebar = () => {
                         <div className="info-section">
                             <h3>Route Directions</h3>
                             <div className="timeline">
-                                {pathResult.totalPath.map((segment, index) => (
-                                    <div key={index} className="timeline-item">
-                                        <div className="timeline-marker">
-                                            <div className="marker-circle">
-                                                <span className="transport-icon">
-                                                    {getTransportIcon(
-                                                        segment.type
-                                                    )}
-                                                </span>
-                                            </div>
-                                            {index <
-                                                pathResult.totalPath.length -
-                                                    1 &&
-                                                renderTimelineLine(
-                                                    segment.type
-                                                )}
-                                        </div>
-                                        <div className="timeline-content">
-                                            <div className="segment-header">
-                                                <span className="transport-type">
-                                                    {segment.type
-                                                        .charAt(0)
-                                                        .toUpperCase() +
-                                                        segment.type.slice(1)}
-                                                </span>
-                                            </div>
-                                            <div className="segment-details">
-                                                <div className="segment-point">
-                                                    <span className="point-label">
-                                                        From:
-                                                    </span>
-                                                    <span className="point-value">
-                                                        {segment.coordinates[0][0].toFixed(
-                                                            6
-                                                        )}
-                                                        ,{" "}
-                                                        {segment.coordinates[0][1].toFixed(
-                                                            6
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                <div className="segment-point">
-                                                    <span className="point-label">
-                                                        To:
-                                                    </span>
-                                                    <span className="point-value">
-                                                        {segment.coordinates[
-                                                            segment.coordinates
-                                                                .length - 1
-                                                        ][0].toFixed(6)}
-                                                        ,
-                                                        {segment.coordinates[
-                                                            segment.coordinates
-                                                                .length - 1
-                                                        ][1].toFixed(6)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                {pathResult?.totalPath.map((segment, index) => (
+                                    <TimelineItem
+                                        key={index}
+                                        segment={segment}
+                                        isLast={
+                                            index ===
+                                            pathResult.totalPath.length - 1
+                                        }
+                                        nextSegment={
+                                            pathResult.totalPath[index + 1]
+                                        }
+                                    />
                                 ))}
                             </div>
                         </div>
-                    </div> */}
+                    </div>
                 </div>
             )}
         </div>
