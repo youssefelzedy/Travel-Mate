@@ -6,6 +6,7 @@ import {
     Marker,
     Popup,
     ZoomControl,
+    CircleMarker,
 } from "react-leaflet";
 
 import "leaflet-routing-machine";
@@ -121,16 +122,39 @@ const MyMap = () => {
                     dataMicroBus?.data?.pathResult.totalPath.map(
                         (path, index) =>
                             path.type === "walk" ? (
-                                <Polyline
-                                    key={index}
-                                    pathOptions={{
-                                        color: "gray",
-                                        weight: 5,
-                                        opacity: 0.8,
-                                        dashArray: "10, 10",
-                                    }}
-                                    positions={path.coordinates}
-                                />
+                                <>
+                                    {/* Border for the line */}
+                                    <Polyline
+                                        key={`${index}-path`}
+                                        pathOptions={{
+                                            color: "lightblue", // Border color (changed from black to dark blue)
+                                            weight: 10, // Border thickness
+                                            opacity: 1,
+                                        }}
+                                        positions={path.coordinates}
+                                    />
+                                    {/* Main line */}
+                                    <Polyline
+                                        key={`${index}-border`}
+                                        pathOptions={{
+                                            color: "darkblue", // Main line color
+                                            weight: 12, // Main line thickness
+                                            opacity: 0.7,
+                                            dashArray: "0.5 , 20",
+                                        }}
+                                        positions={path.coordinates}
+                                    />
+                                    <Polyline
+                                        key={index}
+                                        pathOptions={{
+                                            color: "#1972c4bf", // Main line color
+                                            weight: 8, // Main line thickness
+                                            opacity: 1,
+                                            dashArray: "0.5 , 20",
+                                        }}
+                                        positions={path.coordinates}
+                                    />
+                                </>
                             ) : (
                                 <RoutingControl key={index} path={path} />
                             )
