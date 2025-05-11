@@ -18,13 +18,13 @@ To get started with the Tourist Transportation Finder, follow these steps:
 
    ```bash
    git clone https://github.com/YoussefElzedy/Travel-Mate.git
-   cd Travel-Mate
+   cd Travel-Mate/Back-End
    ```
 
 2. Install dependencies:
 
    ```bash
-   npm install
+   npm i
    ```
 
 3. Set up environment variables:
@@ -34,7 +34,7 @@ To get started with the Tourist Transportation Finder, follow these steps:
 4. Start the application:
 
    ```bash
-   npm start
+   npm run dev
    ```
 
 5. Open your browser and navigate to `http://localhost:2030` to use the application.
