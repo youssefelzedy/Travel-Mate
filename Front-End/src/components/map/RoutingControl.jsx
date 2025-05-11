@@ -19,7 +19,7 @@ export const RoutingControl = ({ path }) => {
                     {
                         color: carType === "microbus" ? "red" : "blue",
                         opacity: 0.8,
-                        weight: 5,
+                        weight: 10,
                     },
                 ],
             },

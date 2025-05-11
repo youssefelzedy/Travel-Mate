@@ -113,7 +113,7 @@ const Sidebar = () => {
                                 <div className="info-content">
                                     <span className="label">Total Fee:</span>
                                     <span className="value">
-                                        {taxiResult?.price_egp.toFixed(0)}
+                                        {taxiResult?.price_egp.toFixed(0)} EGP
                                     </span>
                                 </div>
                             </div>
@@ -192,7 +192,8 @@ const Sidebar = () => {
                                             Total Fee:
                                         </span>
                                         <span className="value">
-                                            ${pathResult?.totalFee.toFixed(2)}
+                                            {pathResult?.totalFee.toFixed(2)}{" "}
+                                            EGP
                                         </span>
                                     </div>
                                 </div>
