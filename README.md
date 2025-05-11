@@ -23,7 +23,7 @@ To get started with the Tourist Transportation Finder, follow these steps:
 
 
 #### Front-End Technology
-- Vue.js
+- React.js
 - tailwind
 - HTML & CSS
 
@@ -57,3 +57,4 @@ For any questions or suggestions, please contact us at.
 - Abdelrahman Magdi : abdomagdi300@gmail.com
 - Salah Swefy : salahm.swefy@gmail.com
 - Saad Samir : saadsamir7177@gmail.com
+- Hazem Osama : hazemosama681@gmail.com
